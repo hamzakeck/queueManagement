@@ -4,9 +4,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>Queue Management</title>
 </head>
 <body>
-
+    <h1>Queue Management</h1>
+    <p><a href="${pageContext.request.contextPath}/test-db">Test DB Connection</a></p>
 </body>
 </html>
