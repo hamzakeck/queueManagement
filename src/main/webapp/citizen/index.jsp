@@ -124,8 +124,86 @@
     </div>
 
     <div class="container">
-        <h2>Welcome to Citizen Dashboard</h2>
-        <!-- Citizen content will be added here -->
+        <h2>Welcome, <%= session.getAttribute("userName") != null ? session.getAttribute("userName") : userEmail %>!</h2>
+        
+        <div class="dashboard-cards">
+            <div class="card">
+                <div class="card-icon">🎫</div>
+                <h3>Create New Ticket</h3>
+                <p>Request a new service ticket</p>
+                <a href="<%= request.getContextPath() %>/citizen/create-ticket.jsp" class="card-btn">Create Ticket</a>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">📍</div>
+                <h3>Track My Ticket</h3>
+                <p>Check your ticket status</p>
+                <a href="<%= request.getContextPath() %>/citizen/track-ticket.jsp" class="card-btn">Track Ticket</a>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">📜</div>
+                <h3>Ticket History</h3>
+                <p>View past tickets</p>
+                <a href="<%= request.getContextPath() %>/citizen/history.jsp" class="card-btn">View History</a>
+            </div>
+        </div>
     </div>
+
+    <style>
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .card p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .card-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .card-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+    </style>
 </body>
 </html>
