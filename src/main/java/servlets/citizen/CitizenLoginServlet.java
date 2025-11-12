@@ -1,11 +1,10 @@
 package servlets.citizen;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
-import dao.factory.DatabaseFactory;
+import dao.CitizenDAO;
+import dao.DAOFactory;
+import models.Citizen;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,6 +18,13 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet("/citizen/LoginServlet")
 public class CitizenLoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private CitizenDAO citizenDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        citizenDAO = DAOFactory.getInstance().getCitizenDAO();
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -26,34 +32,27 @@ public class CitizenLoginServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         try {
-            Connection conn = DatabaseFactory.getInstance().getConnection();
-            String query = "SELECT * FROM citizens WHERE email = ? AND password = ?";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, email);
-            pstmt.setString(2, password);
+            // Use DAO layer for authentication
+            Citizen citizen = citizenDAO.authenticate(email, password);
 
-            ResultSet rs = pstmt.executeQuery();
-
-            if (rs.next()) {
+            if (citizen != null) {
                 // Login successful
                 HttpSession session = request.getSession();
-                session.setAttribute("userEmail", email);
+                session.setAttribute("userEmail", citizen.getEmail());
                 session.setAttribute("userRole", "citizen");
-                session.setAttribute("userId", rs.getInt("id"));
+                session.setAttribute("userId", citizen.getId());
+                session.setAttribute("userName", citizen.getFirstName() + " " + citizen.getLastName());
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes
 
                 response.sendRedirect(request.getContextPath() + "/citizen/index.jsp");
             } else {
                 // Login failed
-                response.sendRedirect(request.getContextPath() + "/login.jsp?error=Invalid email or password&role=citizen");
+                response.sendRedirect(
+                        request.getContextPath() + "/login.jsp?error=Invalid email or password&role=citizen");
             }
-
-            rs.close();
-            pstmt.close();
-            conn.close();
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed");
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed&role=citizen");
         }
     }
 

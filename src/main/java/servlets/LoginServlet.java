@@ -1,11 +1,14 @@
 package servlets;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
-import dao.factory.DatabaseFactory;
+import dao.AdministratorDAO;
+import dao.CitizenDAO;
+import dao.EmployeeDAO;
+import dao.DAOFactory;
+import models.Administrator;
+import models.Citizen;
+import models.Employee;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,11 +17,24 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * Generic Login Servlet - kept for backward compatibility
+ * Generic Login Servlet - handles authentication for all roles
+ * Routes to role-specific DAOs based on the role parameter
  */
 @WebServlet("/LoginServlet")
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private AdministratorDAO administratorDAO;
+    private EmployeeDAO employeeDAO;
+    private CitizenDAO citizenDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        DAOFactory factory = DAOFactory.getInstance();
+        administratorDAO = factory.getAdministratorDAO();
+        employeeDAO = factory.getEmployeeDAO();
+        citizenDAO = factory.getCitizenDAO();
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -27,53 +43,56 @@ public class LoginServlet extends HttpServlet {
         String role = request.getParameter("role");
 
         try {
-            Connection conn = DatabaseFactory.getInstance().getConnection();
-            String query = "";
-            String tableName = "";
-
-            // Determine which table to query based on role
+            // Authenticate using appropriate DAO based on role
+            HttpSession session = request.getSession();
+            boolean authenticated = false;
+            
             if ("admin".equals(role)) {
-                tableName = "administrators";
-            } else if ("employee".equals(role)) {
-                tableName = "employees";
-            } else if ("citizen".equals(role)) {
-                tableName = "citizens";
-            }
-
-            query = "SELECT * FROM " + tableName + " WHERE email = ? AND password = ?";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, email);
-            pstmt.setString(2, password);
-
-            ResultSet rs = pstmt.executeQuery();
-
-            if (rs.next()) {
-                // Login successful - create session
-                HttpSession session = request.getSession();
-                session.setAttribute("userEmail", email);
-                session.setAttribute("userRole", role);
-                session.setAttribute("userId", rs.getInt("id"));
-                session.setMaxInactiveInterval(30 * 60); // 30 minutes
-
-                // Redirect to appropriate dashboard
-                if ("admin".equals(role)) {
+                Administrator admin = administratorDAO.authenticate(email, password);
+                if (admin != null) {
+                    authenticated = true;
+                    session.setAttribute("userEmail", admin.getEmail());
+                    session.setAttribute("userRole", "admin");
+                    session.setAttribute("userId", admin.getId());
+                    session.setAttribute("userName", admin.getFirstName() + " " + admin.getLastName());
+                    session.setMaxInactiveInterval(30 * 60); // 30 minutes
                     response.sendRedirect(request.getContextPath() + "/admin/index.jsp");
-                } else if ("employee".equals(role)) {
+                }
+                
+            } else if ("employee".equals(role)) {
+                Employee employee = employeeDAO.authenticate(email, password);
+                if (employee != null) {
+                    authenticated = true;
+                    session.setAttribute("userEmail", employee.getEmail());
+                    session.setAttribute("userRole", "employee");
+                    session.setAttribute("userId", employee.getId());
+                    session.setAttribute("userName", employee.getFirstName() + " " + employee.getLastName());
+                    session.setAttribute("agencyId", employee.getAgencyId());
+                    session.setMaxInactiveInterval(30 * 60); // 30 minutes
                     response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
-                } else if ("citizen".equals(role)) {
+                }
+                
+            } else if ("citizen".equals(role)) {
+                Citizen citizen = citizenDAO.authenticate(email, password);
+                if (citizen != null) {
+                    authenticated = true;
+                    session.setAttribute("userEmail", citizen.getEmail());
+                    session.setAttribute("userRole", "citizen");
+                    session.setAttribute("userId", citizen.getId());
+                    session.setAttribute("userName", citizen.getFirstName() + " " + citizen.getLastName());
+                    session.setMaxInactiveInterval(30 * 60); // 30 minutes
                     response.sendRedirect(request.getContextPath() + "/citizen/index.jsp");
                 }
-            } else {
-                // Login failed
-                response.sendRedirect(request.getContextPath() + "/login.jsp?error=Invalid email or password");
             }
 
-            rs.close();
-            pstmt.close();
-            conn.close();
+            if (!authenticated) {
+                // Login failed
+                response.sendRedirect(request.getContextPath() + "/login.jsp?error=Invalid email or password&role=" + role);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed");
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed&role=" + role);
         }
     }
 

@@ -17,23 +17,23 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public int create(Citizen citizen) throws DAOException {
         String sql = "INSERT INTO citizens (first_name, last_name, email, phone, cin, password) VALUES (?, ?, ?, ?, ?, ?)";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             pstmt.setString(1, citizen.getFirstName());
             pstmt.setString(2, citizen.getLastName());
             pstmt.setString(3, citizen.getEmail());
             pstmt.setString(4, citizen.getPhone());
             pstmt.setString(5, citizen.getCin());
             pstmt.setString(6, citizen.getPassword());
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows == 0) {
                 throw new DAOException("Creating citizen failed, no rows affected.");
             }
-            
+
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     return generatedKeys.getInt(1);
@@ -49,12 +49,12 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public Citizen findById(int id) throws DAOException {
         String sql = "SELECT * FROM citizens WHERE id = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, id);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return extractCitizen(rs);
@@ -69,12 +69,12 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public Citizen findByEmail(String email) throws DAOException {
         String sql = "SELECT * FROM citizens WHERE email = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, email);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return extractCitizen(rs);
@@ -89,12 +89,12 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public Citizen findByCin(String cin) throws DAOException {
         String sql = "SELECT * FROM citizens WHERE cin = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, cin);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return extractCitizen(rs);
@@ -109,10 +109,10 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public boolean update(Citizen citizen) throws DAOException {
         String sql = "UPDATE citizens SET first_name = ?, last_name = ?, email = ?, phone = ?, cin = ?, password = ? WHERE id = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, citizen.getFirstName());
             pstmt.setString(2, citizen.getLastName());
             pstmt.setString(3, citizen.getEmail());
@@ -120,7 +120,7 @@ public class CitizenDAOImpl implements CitizenDAO {
             pstmt.setString(5, citizen.getCin());
             pstmt.setString(6, citizen.getPassword());
             pstmt.setInt(7, citizen.getId());
-            
+
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new DAOException("Error updating citizen: " + e.getMessage(), e);
@@ -130,10 +130,10 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public boolean delete(int id) throws DAOException {
         String sql = "DELETE FROM citizens WHERE id = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, id);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -145,11 +145,11 @@ public class CitizenDAOImpl implements CitizenDAO {
     public List<Citizen> findAll() throws DAOException {
         String sql = "SELECT * FROM citizens ORDER BY created_at DESC";
         List<Citizen> citizens = new ArrayList<>();
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+
             while (rs.next()) {
                 citizens.add(extractCitizen(rs));
             }
@@ -162,13 +162,13 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public Citizen authenticate(String email, String password) throws DAOException {
         String sql = "SELECT * FROM citizens WHERE email = ? AND password = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, email);
             pstmt.setString(2, password);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return extractCitizen(rs);
@@ -183,12 +183,12 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public boolean emailExists(String email) throws DAOException {
         String sql = "SELECT COUNT(*) FROM citizens WHERE email = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, email);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
@@ -203,12 +203,12 @@ public class CitizenDAOImpl implements CitizenDAO {
     @Override
     public boolean cinExists(String cin) throws DAOException {
         String sql = "SELECT COUNT(*) FROM citizens WHERE cin = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, cin);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
@@ -232,12 +232,12 @@ public class CitizenDAOImpl implements CitizenDAO {
         citizen.setPhone(rs.getString("phone"));
         citizen.setCin(rs.getString("cin"));
         citizen.setPassword(rs.getString("password"));
-        
+
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             citizen.setCreatedAt(createdAt.toLocalDateTime());
         }
-        
+
         return citizen;
     }
 }

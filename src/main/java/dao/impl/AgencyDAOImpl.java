@@ -17,22 +17,22 @@ public class AgencyDAOImpl implements AgencyDAO {
     @Override
     public int create(Agency agency) throws DAOException {
         String sql = "INSERT INTO agencies (name, address, city, phone, total_counters) VALUES (?, ?, ?, ?, ?)";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             pstmt.setString(1, agency.getName());
             pstmt.setString(2, agency.getAddress());
             pstmt.setString(3, agency.getCity());
             pstmt.setString(4, agency.getPhone());
             pstmt.setInt(5, agency.getTotalCounters());
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows == 0) {
                 throw new DAOException("Creating agency failed, no rows affected.");
             }
-            
+
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     return generatedKeys.getInt(1);
@@ -48,12 +48,12 @@ public class AgencyDAOImpl implements AgencyDAO {
     @Override
     public Agency findById(int id) throws DAOException {
         String sql = "SELECT * FROM agencies WHERE id = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, id);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return extractAgency(rs);
@@ -68,12 +68,12 @@ public class AgencyDAOImpl implements AgencyDAO {
     @Override
     public Agency findByName(String name) throws DAOException {
         String sql = "SELECT * FROM agencies WHERE name = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, name);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return extractAgency(rs);
@@ -88,17 +88,17 @@ public class AgencyDAOImpl implements AgencyDAO {
     @Override
     public boolean update(Agency agency) throws DAOException {
         String sql = "UPDATE agencies SET name = ?, address = ?, city = ?, phone = ?, total_counters = ? WHERE id = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, agency.getName());
             pstmt.setString(2, agency.getAddress());
             pstmt.setString(3, agency.getCity());
             pstmt.setString(4, agency.getPhone());
             pstmt.setInt(5, agency.getTotalCounters());
             pstmt.setInt(6, agency.getId());
-            
+
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new DAOException("Error updating agency: " + e.getMessage(), e);
@@ -108,10 +108,10 @@ public class AgencyDAOImpl implements AgencyDAO {
     @Override
     public boolean delete(int id) throws DAOException {
         String sql = "DELETE FROM agencies WHERE id = ?";
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, id);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -123,11 +123,11 @@ public class AgencyDAOImpl implements AgencyDAO {
     public List<Agency> findAll() throws DAOException {
         String sql = "SELECT * FROM agencies ORDER BY city, name";
         List<Agency> agencies = new ArrayList<>();
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+
             while (rs.next()) {
                 agencies.add(extractAgency(rs));
             }
@@ -141,12 +141,12 @@ public class AgencyDAOImpl implements AgencyDAO {
     public List<Agency> findByCity(String city) throws DAOException {
         String sql = "SELECT * FROM agencies WHERE city = ? ORDER BY name";
         List<Agency> agencies = new ArrayList<>();
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, city);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     agencies.add(extractAgency(rs));
@@ -162,11 +162,11 @@ public class AgencyDAOImpl implements AgencyDAO {
     public List<String> getAllCities() throws DAOException {
         String sql = "SELECT DISTINCT city FROM agencies ORDER BY city";
         List<String> cities = new ArrayList<>();
-        
+
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+
             while (rs.next()) {
                 cities.add(rs.getString("city"));
             }
@@ -187,12 +187,12 @@ public class AgencyDAOImpl implements AgencyDAO {
         agency.setCity(rs.getString("city"));
         agency.setPhone(rs.getString("phone"));
         agency.setTotalCounters(rs.getInt("total_counters"));
-        
+
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             agency.setCreatedAt(createdAt.toLocalDateTime());
         }
-        
+
         return agency;
     }
 }

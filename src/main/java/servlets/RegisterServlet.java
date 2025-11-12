@@ -1,11 +1,15 @@
 package servlets;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
-import dao.factory.DatabaseFactory;
+import dao.AdministratorDAO;
+import dao.CitizenDAO;
+import dao.EmployeeDAO;
+import dao.DAOFactory;
+import dao.DAOException;
+import models.Administrator;
+import models.Citizen;
+import models.Employee;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,6 +22,18 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private AdministratorDAO administratorDAO;
+    private EmployeeDAO employeeDAO;
+    private CitizenDAO citizenDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        DAOFactory factory = DAOFactory.getInstance();
+        administratorDAO = factory.getAdministratorDAO();
+        employeeDAO = factory.getEmployeeDAO();
+        citizenDAO = factory.getCitizenDAO();
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -28,65 +44,67 @@ public class RegisterServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         try {
-            Connection conn = DatabaseFactory.getInstance().getConnection();
-
-            // Check if email already exists
-            String checkQuery = "SELECT email FROM administrators WHERE email = ? " +
-                    "UNION SELECT email FROM employees WHERE email = ? " +
-                    "UNION SELECT email FROM citizens WHERE email = ?";
-            PreparedStatement checkStmt = conn.prepareStatement(checkQuery);
-            checkStmt.setString(1, email);
-            checkStmt.setString(2, email);
-            checkStmt.setString(3, email);
-            
-            ResultSet rs = checkStmt.executeQuery();
-            if (rs.next()) {
+            // Check if email already exists across all user types
+            if (administratorDAO.findByEmail(email) != null ||
+                employeeDAO.findByEmail(email) != null ||
+                citizenDAO.findByEmail(email) != null) {
                 response.sendRedirect(request.getContextPath() + "/register.jsp?error=Email already exists");
-                rs.close();
-                checkStmt.close();
-                conn.close();
                 return;
             }
-            rs.close();
-            checkStmt.close();
 
-            String insertQuery = "";
-            PreparedStatement insertStmt = null;
-
+            // Register based on role using DAO layer
             if ("admin".equals(role)) {
-                insertQuery = "INSERT INTO administrators (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
-                insertStmt = conn.prepareStatement(insertQuery);
-                insertStmt.setString(1, firstName);
-                insertStmt.setString(2, lastName);
-                insertStmt.setString(3, email);
-                insertStmt.setString(4, password);
+                Administrator admin = new Administrator();
+                admin.setFirstName(firstName);
+                admin.setLastName(lastName);
+                admin.setEmail(email);
+                admin.setPassword(password);
+                administratorDAO.create(admin);
+                
             } else if ("employee".equals(role)) {
                 String agencyId = request.getParameter("agencyId");
-                insertQuery = "INSERT INTO employees (first_name, last_name, email, password, agency_id) VALUES (?, ?, ?, ?, ?)";
-                insertStmt = conn.prepareStatement(insertQuery);
-                insertStmt.setString(1, firstName);
-                insertStmt.setString(2, lastName);
-                insertStmt.setString(3, email);
-                insertStmt.setString(4, password);
-                insertStmt.setInt(5, Integer.parseInt(agencyId));
+                if (agencyId == null || agencyId.trim().isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=Agency ID is required for employees");
+                    return;
+                }
+                
+                Employee employee = new Employee();
+                employee.setFirstName(firstName);
+                employee.setLastName(lastName);
+                employee.setEmail(email);
+                employee.setPassword(password);
+                employee.setAgencyId(Integer.parseInt(agencyId));
+                employeeDAO.create(employee);
+                
             } else if ("citizen".equals(role)) {
                 String cin = request.getParameter("cin");
-                insertQuery = "INSERT INTO citizens (first_name, last_name, email, password, cin) VALUES (?, ?, ?, ?, ?)";
-                insertStmt = conn.prepareStatement(insertQuery);
-                insertStmt.setString(1, firstName);
-                insertStmt.setString(2, lastName);
-                insertStmt.setString(3, email);
-                insertStmt.setString(4, password);
-                insertStmt.setString(5, cin);
+                if (cin == null || cin.trim().isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=CIN is required for citizens");
+                    return;
+                }
+                
+                Citizen citizen = new Citizen();
+                citizen.setFirstName(firstName);
+                citizen.setLastName(lastName);
+                citizen.setEmail(email);
+                citizen.setPassword(password);
+                citizen.setCin(cin);
+                citizenDAO.create(citizen);
+                
+            } else {
+                response.sendRedirect(request.getContextPath() + "/register.jsp?error=Invalid role specified");
+                return;
             }
 
-            if (insertStmt != null) {
-                insertStmt.executeUpdate();
-                insertStmt.close();
-                response.sendRedirect(request.getContextPath() + "/login.jsp?success=Registration successful");
-            }
-
-            conn.close();
+            // Registration successful
+            response.sendRedirect(request.getContextPath() + "/login.jsp?success=Registration successful");
+            
+        } catch (DAOException e) {
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/register.jsp?error=Registration failed: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/register.jsp?error=Invalid agency ID format");
         } catch (Exception e) {
             e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/register.jsp?error=Registration failed");

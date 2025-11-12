@@ -1,11 +1,10 @@
 package servlets.employee;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
-import dao.factory.DatabaseFactory;
+import dao.EmployeeDAO;
+import dao.DAOFactory;
+import models.Employee;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,6 +18,13 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet("/employee/LoginServlet")
 public class EmployeeLoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private EmployeeDAO employeeDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        employeeDAO = DAOFactory.getInstance().getEmployeeDAO();
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -26,20 +32,17 @@ public class EmployeeLoginServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         try {
-            Connection conn = DatabaseFactory.getInstance().getConnection();
-            String query = "SELECT * FROM employees WHERE email = ? AND password = ?";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, email);
-            pstmt.setString(2, password);
+            // Use DAO layer for authentication
+            Employee employee = employeeDAO.authenticate(email, password);
 
-            ResultSet rs = pstmt.executeQuery();
-
-            if (rs.next()) {
+            if (employee != null) {
                 // Login successful
                 HttpSession session = request.getSession();
-                session.setAttribute("userEmail", email);
+                session.setAttribute("userEmail", employee.getEmail());
                 session.setAttribute("userRole", "employee");
-                session.setAttribute("userId", rs.getInt("id"));
+                session.setAttribute("userId", employee.getId());
+                session.setAttribute("userName", employee.getFirstName() + " " + employee.getLastName());
+                session.setAttribute("agencyId", employee.getAgencyId());
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes
 
                 response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
@@ -47,13 +50,9 @@ public class EmployeeLoginServlet extends HttpServlet {
                 // Login failed
                 response.sendRedirect(request.getContextPath() + "/login.jsp?error=Invalid email or password&role=employee");
             }
-
-            rs.close();
-            pstmt.close();
-            conn.close();
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed");
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed&role=employee");
         }
     }
 

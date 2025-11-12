@@ -1,11 +1,10 @@
 package servlets.admin;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
-import dao.factory.DatabaseFactory;
+import dao.AdministratorDAO;
+import dao.DAOFactory;
+import models.Administrator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,6 +18,13 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet("/admin/LoginServlet")
 public class AdminLoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private AdministratorDAO administratorDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        administratorDAO = DAOFactory.getInstance().getAdministratorDAO();
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -26,20 +32,16 @@ public class AdminLoginServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         try {
-            Connection conn = DatabaseFactory.getInstance().getConnection();
-            String query = "SELECT * FROM administrators WHERE email = ? AND password = ?";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, email);
-            pstmt.setString(2, password);
+            // Use DAO layer for authentication
+            Administrator admin = administratorDAO.authenticate(email, password);
 
-            ResultSet rs = pstmt.executeQuery();
-
-            if (rs.next()) {
+            if (admin != null) {
                 // Login successful
                 HttpSession session = request.getSession();
-                session.setAttribute("userEmail", email);
+                session.setAttribute("userEmail", admin.getEmail());
                 session.setAttribute("userRole", "admin");
-                session.setAttribute("userId", rs.getInt("id"));
+                session.setAttribute("userId", admin.getId());
+                session.setAttribute("userName", admin.getFirstName() + " " + admin.getLastName());
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes
 
                 response.sendRedirect(request.getContextPath() + "/admin/index.jsp");
@@ -47,13 +49,9 @@ public class AdminLoginServlet extends HttpServlet {
                 // Login failed
                 response.sendRedirect(request.getContextPath() + "/login.jsp?error=Invalid email or password&role=admin");
             }
-
-            rs.close();
-            pstmt.close();
-            conn.close();
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed");
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed&role=admin");
         }
     }
 
