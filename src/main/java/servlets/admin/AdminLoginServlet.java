@@ -47,7 +47,8 @@ public class AdminLoginServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/index.jsp");
             } else {
                 // Login failed
-                response.sendRedirect(request.getContextPath() + "/login.jsp?error=Invalid email or password&role=admin");
+                response.sendRedirect(
+                        request.getContextPath() + "/login.jsp?error=Invalid email or password&role=admin");
             }
         } catch (Exception e) {
             e.printStackTrace();

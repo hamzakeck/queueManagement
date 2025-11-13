@@ -46,8 +46,8 @@ public class RegisterServlet extends HttpServlet {
         try {
             // Check if email already exists across all user types
             if (administratorDAO.findByEmail(email) != null ||
-                employeeDAO.findByEmail(email) != null ||
-                citizenDAO.findByEmail(email) != null) {
+                    employeeDAO.findByEmail(email) != null ||
+                    citizenDAO.findByEmail(email) != null) {
                 response.sendRedirect(request.getContextPath() + "/register.jsp?error=Email already exists");
                 return;
             }
@@ -60,14 +60,15 @@ public class RegisterServlet extends HttpServlet {
                 admin.setEmail(email);
                 admin.setPassword(password);
                 administratorDAO.create(admin);
-                
+
             } else if ("employee".equals(role)) {
                 String agencyId = request.getParameter("agencyId");
                 if (agencyId == null || agencyId.trim().isEmpty()) {
-                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=Agency ID is required for employees");
+                    response.sendRedirect(
+                            request.getContextPath() + "/register.jsp?error=Agency ID is required for employees");
                     return;
                 }
-                
+
                 Employee employee = new Employee();
                 employee.setFirstName(firstName);
                 employee.setLastName(lastName);
@@ -75,14 +76,15 @@ public class RegisterServlet extends HttpServlet {
                 employee.setPassword(password);
                 employee.setAgencyId(Integer.parseInt(agencyId));
                 employeeDAO.create(employee);
-                
+
             } else if ("citizen".equals(role)) {
                 String cin = request.getParameter("cin");
                 if (cin == null || cin.trim().isEmpty()) {
-                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=CIN is required for citizens");
+                    response.sendRedirect(
+                            request.getContextPath() + "/register.jsp?error=CIN is required for citizens");
                     return;
                 }
-                
+
                 Citizen citizen = new Citizen();
                 citizen.setFirstName(firstName);
                 citizen.setLastName(lastName);
@@ -90,7 +92,7 @@ public class RegisterServlet extends HttpServlet {
                 citizen.setPassword(password);
                 citizen.setCin(cin);
                 citizenDAO.create(citizen);
-                
+
             } else {
                 response.sendRedirect(request.getContextPath() + "/register.jsp?error=Invalid role specified");
                 return;
@@ -98,10 +100,11 @@ public class RegisterServlet extends HttpServlet {
 
             // Registration successful
             response.sendRedirect(request.getContextPath() + "/login.jsp?success=Registration successful");
-            
+
         } catch (DAOException e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=Registration failed: " + e.getMessage());
+            response.sendRedirect(
+                    request.getContextPath() + "/register.jsp?error=Registration failed: " + e.getMessage());
         } catch (NumberFormatException e) {
             e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/register.jsp?error=Invalid agency ID format");

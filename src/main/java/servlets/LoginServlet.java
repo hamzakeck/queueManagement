@@ -46,7 +46,7 @@ public class LoginServlet extends HttpServlet {
             // Authenticate using appropriate DAO based on role
             HttpSession session = request.getSession();
             boolean authenticated = false;
-            
+
             if ("admin".equals(role)) {
                 Administrator admin = administratorDAO.authenticate(email, password);
                 if (admin != null) {
@@ -58,7 +58,7 @@ public class LoginServlet extends HttpServlet {
                     session.setMaxInactiveInterval(30 * 60); // 30 minutes
                     response.sendRedirect(request.getContextPath() + "/admin/index.jsp");
                 }
-                
+
             } else if ("employee".equals(role)) {
                 Employee employee = employeeDAO.authenticate(email, password);
                 if (employee != null) {
@@ -71,7 +71,7 @@ public class LoginServlet extends HttpServlet {
                     session.setMaxInactiveInterval(30 * 60); // 30 minutes
                     response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
                 }
-                
+
             } else if ("citizen".equals(role)) {
                 Citizen citizen = citizenDAO.authenticate(email, password);
                 if (citizen != null) {
@@ -87,7 +87,8 @@ public class LoginServlet extends HttpServlet {
 
             if (!authenticated) {
                 // Login failed
-                response.sendRedirect(request.getContextPath() + "/login.jsp?error=Invalid email or password&role=" + role);
+                response.sendRedirect(
+                        request.getContextPath() + "/login.jsp?error=Invalid email or password&role=" + role);
             }
 
         } catch (Exception e) {

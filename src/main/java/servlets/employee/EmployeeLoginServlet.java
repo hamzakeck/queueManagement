@@ -48,7 +48,8 @@ public class EmployeeLoginServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
             } else {
                 // Login failed
-                response.sendRedirect(request.getContextPath() + "/login.jsp?error=Invalid email or password&role=employee");
+                response.sendRedirect(
+                        request.getContextPath() + "/login.jsp?error=Invalid email or password&role=employee");
             }
         } catch (Exception e) {
             e.printStackTrace();
