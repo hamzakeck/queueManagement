@@ -12,6 +12,7 @@ public class Agency {
     private String city;
     private String phone;
     private int totalCounters; // Number of guichets
+    private boolean active;
     private LocalDateTime createdAt;
 
     // Constructors
@@ -74,6 +75,14 @@ public class Agency {
 
     public void setTotalCounters(int totalCounters) {
         this.totalCounters = totalCounters;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public LocalDateTime getCreatedAt() {

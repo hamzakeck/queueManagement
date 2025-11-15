@@ -74,11 +74,14 @@ CREATE TABLE employees (
     email VARCHAR(150) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     agency_id INT NOT NULL,
+    service_id INT NOT NULL,
     counter_id INT COMMENT 'Guichet/Counter number',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (agency_id) REFERENCES agencies(id) ON DELETE CASCADE,
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
     INDEX idx_email (email),
-    INDEX idx_agency (agency_id)
+    INDEX idx_agency (agency_id),
+    INDEX idx_service (service_id)
 ) ENGINE=InnoDB;
 
 -- ========================================
@@ -133,11 +136,11 @@ INSERT INTO citizens (first_name, last_name, email, phone, cin, password) VALUES
 ('Hassan', 'El Idrissi', 'hassan@email.com', '0663456789', 'EF345678', 'citizen123');
 
 -- Insert Sample Employees (password: employee123)
-INSERT INTO employees (first_name, last_name, email, password, agency_id, counter_id) VALUES
-('Ahmed', 'Tazi', 'ahmed.tazi@queue.com', 'employee123', 1, 1),
-('Samira', 'Chraibi', 'samira.chraibi@queue.com', 'employee123', 1, 2),
-('Youssef', 'Benjelloun', 'youssef.b@queue.com', 'employee123', 2, 1),
-('Amina', 'Fassi', 'amina.fassi@queue.com', 'employee123', 2, 2);
+INSERT INTO employees (first_name, last_name, email, password, agency_id, service_id, counter_id) VALUES
+('Ahmed', 'Tazi', 'ahmed.tazi@queue.com', 'employee123', 1, 1, 1),
+('Samira', 'Chraibi', 'samira.chraibi@queue.com', 'employee123', 1, 2, 2),
+('Youssef', 'Benjelloun', 'youssef.b@queue.com', 'employee123', 2, 3, 1),
+('Amina', 'Fassi', 'amina.fassi@queue.com', 'employee123', 2, 4, 2);
 
 -- Insert Sample Tickets
 INSERT INTO tickets (ticket_number, citizen_id, service_id, agency_id, status, position) VALUES

@@ -18,6 +18,15 @@ public interface AgencyDAO {
     int create(Agency agency) throws DAOException;
 
     /**
+     * Save an agency (create if new, update if exists)
+     * 
+     * @param agency The agency to save
+     * @return The ID of the saved agency
+     * @throws DAOException if database error occurs
+     */
+    int save(Agency agency) throws DAOException;
+
+    /**
      * Find an agency by ID
      * 
      * @param id The agency ID

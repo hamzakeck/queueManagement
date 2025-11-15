@@ -18,6 +18,15 @@ public interface ServiceDAO {
     int create(Service service) throws DAOException;
 
     /**
+     * Save a service (create if new, update if exists)
+     * 
+     * @param service The service to save
+     * @return The ID of the saved service
+     * @throws DAOException if database error occurs
+     */
+    int save(Service service) throws DAOException;
+
+    /**
      * Find a service by ID
      * 
      * @param id The service ID

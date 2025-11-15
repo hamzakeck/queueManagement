@@ -21,7 +21,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>🔗 Queue Management System</h1>
+        <h1>Queue Management System</h1>
         <div class="navbar-right">
             <div class="user-info">
                 <p><%= userEmail %></p>

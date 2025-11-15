@@ -1,14 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="models.Ticket" %>
-<%@ page import="models.Agency" %>
-<%@ page import="models.Service" %>
 <%@ page import="dao.TicketDAO" %>
-<%@ page import="dao.AgencyDAO" %>
-<%@ page import="dao.ServiceDAO" %>
 <%@ page import="dao.DAOFactory" %>
 <%
-    // Check if user is logged in and is citizen
     String userEmail = (String) session.getAttribute("userEmail");
     String userRole = (String) session.getAttribute("userRole");
     Integer citizenId = (Integer) session.getAttribute("userId");
@@ -18,11 +13,7 @@
         return;
     }
 
-    // Get my active tickets
     TicketDAO ticketDAO = DAOFactory.getInstance().getTicketDAO();
-    AgencyDAO agencyDAO = DAOFactory.getInstance().getAgencyDAO();
-    ServiceDAO serviceDAO = DAOFactory.getInstance().getServiceDAO();
-    
     List<Ticket> myTickets = ticketDAO.findByCitizenId(citizenId);
 %>
 <!DOCTYPE html>
@@ -30,7 +21,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Track My Tickets - Queue Management</title>
+<title>Track Tickets</title>
 <style>
     * {
         margin: 0;
@@ -39,336 +30,510 @@
     }
 
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f5f7fa;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: #f8f9fa;
+        color: #212529;
+        line-height: 1.6;
     }
 
-    .navbar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px 40px;
+    .header {
+        background: #fff;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 2rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .navbar h1 {
-        font-size: 24px;
-    }
-
-    .back-btn {
-        background-color: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 2px solid white;
-        padding: 8px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.3s;
-        font-size: 14px;
+    .header h1 {
+        font-size: 1.25rem;
         font-weight: 600;
-        display: inline-block;
     }
 
-    .back-btn:hover {
-        background-color: white;
-        color: #667eea;
+    .back-link {
+        color: #495057;
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+
+    .back-link:hover {
+        color: #212529;
     }
 
     .container {
-        max-width: 1000px;
-        margin: 40px auto;
-        padding: 0 20px;
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
     }
 
-    .page-header {
-        margin-bottom: 30px;
+    .page-title {
+        margin-bottom: 2rem;
     }
 
-    .page-header h2 {
-        color: #333;
-        margin-bottom: 10px;
+    .page-title h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
     }
 
-    .page-header p {
-        color: #666;
+    .page-title p {
+        color: #6c757d;
+        font-size: 0.875rem;
     }
 
-    .tickets-grid {
-        display: grid;
-        gap: 20px;
+    .connection-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: #e9ecef;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .connection-status.connected {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #6c757d;
+    }
+
+    .status-dot.connected {
+        background: #198754;
+    }
+
+    .tickets-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
     }
 
     .ticket-card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        transition: transform 0.3s, box-shadow 0.3s;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        transition: all 0.2s;
     }
 
     .ticket-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        border-color: #adb5bd;
     }
 
     .ticket-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 1rem;
     }
 
     .ticket-number {
-        font-size: 32px;
-        font-weight: bold;
+        font-size: 1.5rem;
+        font-weight: 700;
         font-family: 'Courier New', monospace;
+        color: #212529;
     }
 
-    .ticket-status {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 12px;
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
     }
 
-    .status-waiting {
-        background-color: #ff9800;
-        color: white;
-    }
-
-    .status-called {
-        background-color: #2196F3;
-        color: white;
-    }
-
-    .status-in_progress {
-        background-color: #4CAF50;
-        color: white;
-    }
-
-    .status-completed {
-        background-color: #9E9E9E;
-        color: white;
-    }
-
-    .status-cancelled {
-        background-color: #f44336;
-        color: white;
-    }
-
-    .ticket-body {
-        padding: 25px;
-    }
+    .status-waiting { background: #fff3cd; color: #997404; }
+    .status-in_progress { background: #d1e7dd; color: #0f5132; }
+    .status-completed { background: #e9ecef; color: #495057; }
+    .status-cancelled { background: #f8d7da; color: #842029; }
 
     .ticket-info {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        margin-bottom: 20px;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
     }
 
     .info-item {
         display: flex;
         flex-direction: column;
+        gap: 0.25rem;
     }
 
     .info-label {
-        font-size: 12px;
-        color: #666;
+        font-size: 0.75rem;
+        color: #6c757d;
         text-transform: uppercase;
-        margin-bottom: 5px;
+        letter-spacing: 0.5px;
     }
 
     .info-value {
-        font-size: 16px;
-        color: #333;
-        font-weight: 600;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #212529;
     }
 
-    .position-indicator {
-        background: #f0f4ff;
-        border-left: 4px solid #667eea;
-        padding: 20px;
-        border-radius: 5px;
+    .queue-stats {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.375rem;
+    }
+
+    .stat-item {
         text-align: center;
     }
 
-    .position-item h4 {
-        font-size: 28px;
-        color: #667eea;
-        margin-bottom: 5px;
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #212529;
     }
 
-    .position-item p {
-        font-size: 12px;
-        color: #666;
+    .stat-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
     }
 
     .empty-state {
-        background: white;
-        padding: 60px 40px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         text-align: center;
+        padding: 3rem 1.5rem;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
     }
 
     .empty-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
+        font-size: 3rem;
+        margin-bottom: 1rem;
         opacity: 0.5;
     }
 
     .empty-state h3 {
-        color: #333;
-        margin-bottom: 10px;
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
     }
 
     .empty-state p {
-        color: #666;
-        margin-bottom: 30px;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
     }
 
-    .create-ticket-btn {
+    .btn {
         display: inline-block;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 15px 40px;
-        border-radius: 8px;
+        padding: 0.625rem 1.25rem;
+        background: #212529;
+        color: #fff;
         text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s;
     }
 
-    .create-ticket-btn:hover {
-        opacity: 0.9;
-        transform: translateY(-2px);
+    .btn:hover {
+        background: #000;
     }
 
-    .refresh-btn {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 50px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        transition: all 0.3s;
-    }
+    @media (max-width: 640px) {
+        .ticket-info {
+            grid-template-columns: 1fr;
+        }
 
-    .refresh-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        .queue-stats {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>📍 Track My Tickets</h1>
-        <a href="<%= request.getContextPath() %>/citizen/index.jsp" class="back-btn">← Back to Dashboard</a>
+    <div class="header">
+        <h1>Track Tickets</h1>
+        <a href="<%= request.getContextPath() %>/citizen/index.jsp" class="back-link">← Back</a>
     </div>
 
     <div class="container">
-        <div class="page-header">
-            <h2>My Active Tickets</h2>
-            <p>Real-time status of your queue tickets</p>
+        <div class="page-title">
+            <h2>My Tickets</h2>
+            <p>Real-time updates via WebSocket</p>
+            <div id="connectionStatus" class="connection-status">
+                <span class="status-dot"></span>
+                <span>Connecting...</span>
+            </div>
         </div>
 
         <% if (myTickets == null || myTickets.isEmpty()) { %>
             <div class="empty-state">
-                <div class="empty-icon">🎫</div>
-                <h3>No Active Tickets</h3>
-                <p>You haven't created any tickets yet. Create one now to get started!</p>
-                <a href="<%= request.getContextPath() %>/citizen/create-ticket.jsp" class="create-ticket-btn">
-                    🎫 Create New Ticket
-                </a>
+                <h3>No Tickets Yet</h3>
+                <p>Create a new ticket to get started</p>
+                <a href="<%= request.getContextPath() %>/citizen/create-ticket.jsp" class="btn">Create Ticket</a>
             </div>
         <% } else { %>
-            <div class="tickets-grid">
-                <% for (Ticket ticket : myTickets) { 
-                    Agency agency = agencyDAO.findById(ticket.getAgencyId());
-                    Service service = serviceDAO.findById(ticket.getServiceId());
-                    
-                    // Get current position (count WAITING tickets before this one)
-                    int currentPosition = ticketDAO.getQueuePosition(ticket.getId());
-                    int totalWaiting = ticketDAO.countByAgencyAndStatus(ticket.getAgencyId(), "WAITING");
-                    
-                    // Calculate estimated wait time
-                    int estimatedWait = 0;
-                    if (service.getEstimatedTime() != null && currentPosition > 0) {
-                        estimatedWait = currentPosition * service.getEstimatedTime();
-                    }
-                %>
-                <div class="ticket-card">
+            <div class="tickets-list">
+                <% for (Ticket ticket : myTickets) { %>
+                <div class="ticket-card" data-ticket-id="<%= ticket.getId() %>">
                     <div class="ticket-header">
                         <div class="ticket-number"><%= ticket.getTicketNumber() %></div>
-                        <div class="ticket-status status-<%= ticket.getStatus().toLowerCase() %>">
+                        <div class="status-badge status-<%= ticket.getStatus().toLowerCase() %>">
                             <%= ticket.getStatus() %>
                         </div>
                     </div>
                     
-                    <div class="ticket-body">
-                        <div class="ticket-info">
-                            <div class="info-item">
-                                <span class="info-label">Ticket ID</span>
-                                <span class="info-value">#<%= ticket.getId() %></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Created</span>
-                                <span class="info-value"><%= ticket.getCreatedAt() != null ? ticket.getCreatedAt().toString().substring(0, 16).replace("T", " ") : "N/A" %></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Agency</span>
-                                <span class="info-value"><%= agency != null ? agency.getName() : "N/A" %></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Service</span>
-                                <span class="info-value"><%= service != null ? service.getName() : "N/A" %></span>
-                            </div>
+                    <div class="ticket-info">
+                        <div class="info-item">
+                            <span class="info-label">Service</span>
+                            <span class="info-value">Service #<%= ticket.getServiceId() %></span>
                         </div>
-
-                        <% if ("WAITING".equals(ticket.getStatus())) { %>
-                        <div class="position-indicator">
-                            <div class="position-item">
-                                <h4><%= currentPosition %></h4>
-                                <p>Position</p>
-                            </div>
-                            <div class="position-item">
-                                <h4><%= totalWaiting %></h4>
-                                <p>In Queue</p>
-                            </div>
-                            <div class="position-item">
-                                <h4><%= estimatedWait %> min</h4>
-                                <p>Est. Wait</p>
-                            </div>
+                        <div class="info-item">
+                            <span class="info-label">Agency</span>
+                            <span class="info-value">Agency #<%= ticket.getAgencyId() %></span>
                         </div>
-                        <% } %>
+                        <div class="info-item">
+                            <span class="info-label">Created</span>
+                            <span class="info-value"><%= ticket.getCreatedAt() != null ? ticket.getCreatedAt().toString().substring(0, 16).replace("T", " ") : "N/A" %></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ticket ID</span>
+                            <span class="info-value">#<%= ticket.getId() %></span>
+                        </div>
                     </div>
+
+                    <% if ("WAITING".equals(ticket.getStatus())) { %>
+                    <div class="queue-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="position-<%= ticket.getId() %>"><%= ticket.getPosition() %></div>
+                            <div class="stat-label">Position</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="queue-<%= ticket.getId() %>">--</div>
+                            <div class="stat-label">In Queue</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="wait-<%= ticket.getId() %>">--</div>
+                            <div class="stat-label">Est. Wait</div>
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
                 <% } %>
             </div>
         <% } %>
     </div>
 
-    <button class="refresh-btn" onclick="location.reload()">🔄 Refresh</button>
-
     <script>
-        // Auto-refresh every 30 seconds
+        // === WEBSOCKET: Real-time updates ===
+        // This connects to the server and listens for updates
+        // When an employee calls a ticket, everyone gets notified instantly!
+        
+        let ws;  // This will store our websocket connection
+        const statusEl = document.getElementById('connectionStatus');
+        
+        // Connect to the server
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = protocol + '//' + window.location.host + '<%= request.getContextPath() %>/queue-updates';
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                // When connected
+                ws.onopen = function() {
+                    console.log('Connected to server!');
+                    statusEl.className = 'connection-status connected';
+                    statusEl.querySelector('.status-dot').className = 'status-dot connected';
+                    statusEl.querySelector('span:last-child').textContent = 'Connected';
+                };
+                
+                // When we get a message from server
+                ws.onmessage = function(event) {
+                    console.log('Got update:', event.data);
+                    try {
+                        const data = JSON.parse(event.data);  // Convert JSON string to object
+                        
+                        // If queue changed, update wait times for all waiting tickets
+                        if (data.action === 'queueUpdate') {
+                            updateAllWaitTimes();
+                        }
+                        
+                        updateTicketStatus(data);  // Update the page
+                    } catch (e) {
+                        console.error('Error:', e);
+                    }
+                };
+                
+                // When disconnected
+                ws.onclose = function() {
+                    console.log('Disconnected');
+                    statusEl.className = 'connection-status';
+                    statusEl.querySelector('.status-dot').className = 'status-dot';
+                    statusEl.querySelector('span:last-child').textContent = 'Disconnected';
+                    
+                    // Try to reconnect after 3 seconds
+                    setTimeout(connectWebSocket, 3000);
+                };
+                
+                ws.onerror = function(error) {
+                    console.error('Connection error:', error);
+                };
+            } catch (error) {
+                console.error('Failed to connect:', error);
+                statusEl.querySelector('span:last-child').textContent = 'Connection failed';
+            }
+        }
+        
+        // Update the ticket display when we get new data
+        function updateTicketStatus(data) {
+            const ticketCards = document.querySelectorAll('.ticket-card');
+            
+            ticketCards.forEach(card => {
+                const ticketNumber = card.querySelector('.ticket-number').textContent.trim();
+                
+                // Is this the ticket that was updated?
+                if (data.ticketNumber === ticketNumber) {
+                    // Update the status badge
+                    const statusBadge = card.querySelector('.status-badge');
+                    statusBadge.className = 'status-badge status-' + data.status.toLowerCase();
+                    statusBadge.textContent = data.status;
+                    
+                    // Hide queue stats if no longer waiting
+                    if (data.status !== 'WAITING') {
+                        const queueStats = card.querySelector('.queue-stats');
+                        if (queueStats) {
+                            queueStats.style.display = 'none';
+                        }
+                    }
+                    
+                    // Show notification if ticket is being served
+                    if (data.status === 'IN_PROGRESS') {
+                        showNotification('Your turn! Ticket ' + ticketNumber + ' is now being served');
+                        playNotificationSound();
+                    }
+                }
+            });
+        }
+        
+        // Update wait times for all WAITING tickets
+        function updateAllWaitTimes() {
+            const ticketCards = document.querySelectorAll('.ticket-card');
+            
+            ticketCards.forEach(card => {
+                const ticketNumber = card.querySelector('.ticket-number').textContent.trim();
+                const statusBadge = card.querySelector('.status-badge');
+                
+                // Only update if ticket is still WAITING
+                if (statusBadge && statusBadge.textContent.trim() === 'WAITING') {
+                    fetchWaitTime(ticketNumber, card);
+                }
+            });
+        }
+        
+        // Fetch wait time from server for a specific ticket
+        function fetchWaitTime(ticketNumber, card) {
+            fetch('<%= request.getContextPath() %>/citizen/GetWaitTimeServlet?ticketNumber=' + ticketNumber)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    
+                    // Get the ticket ID from card
+                    const ticketId = card.getAttribute('data-ticket-id');
+                    
+                    // Update position
+                    const positionEl = document.getElementById('position-' + ticketId);
+                    if (positionEl) {
+                        positionEl.textContent = data.position;
+                    }
+                    
+                    // Update "in queue" count (position + 1 because 0 means next in line)
+                    const queueEl = document.getElementById('queue-' + ticketId);
+                    if (queueEl) {
+                        queueEl.textContent = (data.position + 1);
+                    }
+                    
+                    // Update estimated wait time
+                    const waitEl = document.getElementById('wait-' + ticketId);
+                    if (waitEl) {
+                        if (data.estimatedWaitMinutes === 0) {
+                            waitEl.textContent = 'Next!';
+                            waitEl.style.color = '#198754';  // Green color
+                        } else {
+                            waitEl.textContent = '~' + data.estimatedWaitMinutes + 'm';
+                            waitEl.style.color = '';  // Reset color
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to fetch wait time:', error);
+                });
+        }
+        
+        // Show browser notification
+        function showNotification(message) {
+            if (!("Notification" in window)) {
+                alert(message);
+                return;
+            }
+            
+            if (Notification.permission === "granted") {
+                new Notification("Queue Update", { body: message });
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === "granted") {
+                        new Notification("Queue Update", { body: message });
+                    }
+                });
+            }
+        }
+        
+        // Play a simple beep sound
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log('Could not play sound');
+            }
+        }
+        
+        // Ask permission for notifications
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+        
+        // Start the connection when page loads
+        connectWebSocket();
+        
+        // Load initial wait times for all WAITING tickets
         setTimeout(function() {
-            location.reload();
-        }, 30000);
+            updateAllWaitTimes();
+        }, 1000);  // Wait 1 second for WebSocket to connect
     </script>
 </body>
 </html>

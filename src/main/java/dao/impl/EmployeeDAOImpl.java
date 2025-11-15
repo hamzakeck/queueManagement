@@ -16,7 +16,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public int create(Employee employee) throws DAOException {
-        String sql = "INSERT INTO employees (first_name, last_name, email, password, agency_id, counter_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO employees (first_name, last_name, email, password, agency_id, service_id, counter_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -26,11 +26,12 @@ public class EmployeeDAOImpl implements EmployeeDAO {
             pstmt.setString(3, employee.getEmail());
             pstmt.setString(4, employee.getPassword());
             pstmt.setInt(5, employee.getAgencyId());
+            pstmt.setInt(6, employee.getServiceId());
 
             if (employee.getCounterId() > 0) {
-                pstmt.setInt(6, employee.getCounterId());
+                pstmt.setInt(7, employee.getCounterId());
             } else {
-                pstmt.setNull(6, Types.INTEGER);
+                pstmt.setNull(7, Types.INTEGER);
             }
 
             int affectedRows = pstmt.executeUpdate();
@@ -48,6 +49,16 @@ public class EmployeeDAOImpl implements EmployeeDAO {
             }
         } catch (SQLException e) {
             throw new DAOException("Error creating employee: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public int save(Employee employee) throws DAOException {
+        if (employee.getId() > 0) {
+            update(employee);
+            return employee.getId();
+        } else {
+            return create(employee);
         }
     }
 
@@ -93,7 +104,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public boolean update(Employee employee) throws DAOException {
-        String sql = "UPDATE employees SET first_name = ?, last_name = ?, email = ?, password = ?, agency_id = ?, counter_id = ? WHERE id = ?";
+        String sql = "UPDATE employees SET first_name = ?, last_name = ?, email = ?, password = ?, agency_id = ?, service_id = ?, counter_id = ? WHERE id = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -103,14 +114,15 @@ public class EmployeeDAOImpl implements EmployeeDAO {
             pstmt.setString(3, employee.getEmail());
             pstmt.setString(4, employee.getPassword());
             pstmt.setInt(5, employee.getAgencyId());
+            pstmt.setInt(6, employee.getServiceId());
 
             if (employee.getCounterId() > 0) {
-                pstmt.setInt(6, employee.getCounterId());
+                pstmt.setInt(7, employee.getCounterId());
             } else {
-                pstmt.setNull(6, Types.INTEGER);
+                pstmt.setNull(7, Types.INTEGER);
             }
 
-            pstmt.setInt(7, employee.getId());
+            pstmt.setInt(8, employee.getId());
 
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -244,6 +256,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
         employee.setEmail(rs.getString("email"));
         employee.setPassword(rs.getString("password"));
         employee.setAgencyId(rs.getInt("agency_id"));
+        employee.setServiceId(rs.getInt("service_id"));
         employee.setCounterId(rs.getInt("counter_id"));
 
         Timestamp createdAt = rs.getTimestamp("created_at");

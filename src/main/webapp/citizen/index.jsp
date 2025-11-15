@@ -15,7 +15,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Queue Management System - Citizen Dashboard</title>
+<title>Citizen Dashboard</title>
 <style>
     * {
         margin: 0;
@@ -24,186 +24,173 @@
     }
 
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f5f7fa;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: #f8f9fa;
+        color: #212529;
+        line-height: 1.6;
     }
 
-    .navbar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px 40px;
+    .header {
+        background: #fff;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 2rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .navbar h1 {
-        font-size: 24px;
+    .header h1 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
     }
 
-    .navbar-right {
+    .user-section {
         display: flex;
         align-items: center;
-        gap: 30px;
+        gap: 1.5rem;
     }
 
     .user-info {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-    }
-
-    .user-info p {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-
-    .user-info .role {
-        font-weight: 600;
-        font-size: 16px;
+        text-align: right;
+        font-size: 0.875rem;
+        color: #6c757d;
     }
 
     .logout-btn {
-        background-color: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 2px solid white;
-        padding: 8px 20px;
-        border-radius: 5px;
+        background: transparent;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
         cursor: pointer;
-        transition: all 0.3s;
-        font-size: 14px;
-        font-weight: 600;
+        font-size: 0.875rem;
+        color: #495057;
+        transition: all 0.2s;
     }
 
     .logout-btn:hover {
-        background-color: white;
-        color: #667eea;
+        background: #f8f9fa;
+        border-color: #adb5bd;
     }
 
     .container {
-        max-width: 1200px;
-        margin: 40px auto;
-        padding: 0 20px;
+        max-width: 900px;
+        margin: 3rem auto;
+        padding: 0 1.5rem;
     }
 
-    .container h2 {
-        color: #333;
-        margin-bottom: 20px;
+    .welcome {
+        margin-bottom: 2.5rem;
     }
 
-    @media (max-width: 768px) {
-        .navbar {
+    .welcome h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome p {
+        color: #6c757d;
+        font-size: 0.9375rem;
+    }
+
+    .actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+    }
+
+    .action-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .action-card:hover {
+        border-color: #495057;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transform: translateY(-2px);
+    }
+
+    .action-card .icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #212529;
+    }
+
+    .action-card p {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    @media (max-width: 640px) {
+        .header {
             flex-direction: column;
-            gap: 15px;
+            align-items: flex-start;
+            gap: 1rem;
         }
 
-        .navbar-right {
+        .user-section {
             width: 100%;
             justify-content: space-between;
         }
 
-        .user-info {
-            align-items: flex-start;
+        .actions {
+            grid-template-columns: 1fr;
         }
     }
 </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>🔗 Queue Management System - Citizen</h1>
-        <div class="navbar-right">
+    <div class="header">
+        <h1>Queue Management</h1>
+        <div class="user-section">
             <div class="user-info">
-                <p><%= userEmail %></p>
-                <p class="role"><%= userRole.toUpperCase() %></p>
+                <div><%= userEmail %></div>
+                <div style="font-weight: 500; color: #212529;">Citizen</div>
             </div>
-            <form action="<%= request.getContextPath() %>/LogoutServlet" method="POST" style="display: inline;">
+            <form action="<%= request.getContextPath() %>/LogoutServlet" method="POST">
                 <button type="submit" class="logout-btn">Logout</button>
             </form>
         </div>
     </div>
 
     <div class="container">
-        <h2>Welcome, <%= session.getAttribute("userName") != null ? session.getAttribute("userName") : userEmail %>!</h2>
-        
-        <div class="dashboard-cards">
-            <div class="card">
-                <div class="card-icon">🎫</div>
-                <h3>Create New Ticket</h3>
-                <p>Request a new service ticket</p>
-                <a href="<%= request.getContextPath() %>/citizen/create-ticket.jsp" class="card-btn">Create Ticket</a>
-            </div>
+        <div class="welcome">
+            <h2>Welcome back</h2>
+            <p>Manage your queue tickets and appointments</p>
+        </div>
 
-            <div class="card">
-                <div class="card-icon">📍</div>
-                <h3>Track My Ticket</h3>
-                <p>Check your ticket status</p>
-                <a href="<%= request.getContextPath() %>/citizen/track-ticket.jsp" class="card-btn">Track Ticket</a>
-            </div>
+        <div class="actions">
+            <a href="<%= request.getContextPath() %>/citizen/create-ticket.jsp" class="action-card">
+                <h3>New Ticket</h3>
+                <p>Create a new service ticket</p>
+            </a>
 
-            <div class="card">
-                <div class="card-icon">📜</div>
-                <h3>Ticket History</h3>
-                <p>View past tickets</p>
-                <a href="<%= request.getContextPath() %>/citizen/history.jsp" class="card-btn">View History</a>
-            </div>
+            <a href="<%= request.getContextPath() %>/citizen/track-ticket.jsp" class="action-card">
+                <h3>Track Ticket</h3>
+                <p>View your ticket status in real-time</p>
+            </a>
+
+            <a href="<%= request.getContextPath() %>/citizen/history.jsp" class="action-card">
+                <h3>History</h3>
+                <p>View your past tickets</p>
+            </a>
         </div>
     </div>
-
-    <style>
-        .dashboard-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .card-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .card h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 20px;
-        }
-
-        .card p {
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .card-btn {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 30px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .card-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.05);
-        }
-    </style>
 </body>
 </html>

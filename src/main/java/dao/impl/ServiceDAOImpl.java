@@ -45,6 +45,16 @@ public class ServiceDAOImpl implements ServiceDAO {
     }
 
     @Override
+    public int save(Service service) throws DAOException {
+        if (service.getId() > 0) {
+            update(service);
+            return service.getId();
+        } else {
+            return create(service);
+        }
+    }
+
+    @Override
     public Service findById(int id) throws DAOException {
         String sql = "SELECT * FROM services WHERE id = ?";
 

@@ -18,6 +18,15 @@ public interface EmployeeDAO {
     int create(Employee employee) throws DAOException;
 
     /**
+     * Save an employee (create if new, update if exists)
+     * 
+     * @param employee The employee to save
+     * @return The ID of the saved employee
+     * @throws DAOException if database error occurs
+     */
+    int save(Employee employee) throws DAOException;
+
+    /**
      * Find an employee by ID
      * 
      * @param id The employee ID

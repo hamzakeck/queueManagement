@@ -12,6 +12,7 @@ public class Employee {
     private String email;
     private String password;
     private int agencyId;
+    private int serviceId;
     private int counterId; // Guichet number
     private LocalDateTime createdAt;
 
@@ -75,6 +76,14 @@ public class Employee {
 
     public void setAgencyId(int agencyId) {
         this.agencyId = agencyId;
+    }
+
+    public int getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(int serviceId) {
+        this.serviceId = serviceId;
     }
 
     public int getCounterId() {

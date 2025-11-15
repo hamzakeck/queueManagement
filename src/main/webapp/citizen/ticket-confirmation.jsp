@@ -35,7 +35,7 @@
 
     // Calculate estimated wait time (position * service time)
     int estimatedWait = 0;
-    if (position != null && service.getEstimatedTime() != null) {
+    if (position != null && service.getEstimatedTime() > 0) {
         estimatedWait = position * service.getEstimatedTime();
     }
 
@@ -260,7 +260,6 @@
 <body>
     <div class="confirmation-container">
         <div class="success-header">
-            <div class="success-icon">✅</div>
             <h1>Ticket Created Successfully!</h1>
             <p>Your queue ticket has been generated</p>
         </div>
@@ -285,7 +284,7 @@
             </div>
 
             <div class="details-section">
-                <h3>📋 Ticket Details</h3>
+                <h3>Ticket Details</h3>
                 <div class="detail-row">
                     <span class="detail-label">Ticket ID</span>
                     <span class="detail-value">#<%= ticketId %></span>
@@ -305,16 +304,16 @@
             </div>
 
             <div class="note">
-                <strong>📌 Important:</strong> Please arrive at the agency before your turn. 
+                <strong>Important:</strong> Please arrive at the agency before your turn. 
                 You can track your ticket status in real-time from the dashboard.
             </div>
 
             <div class="action-buttons">
                 <a href="<%= request.getContextPath() %>/citizen/track-ticket.jsp?ticketId=<%= ticketId %>" class="btn btn-primary">
-                    📍 Track Ticket
+                    Track Ticket
                 </a>
                 <a href="<%= request.getContextPath() %>/citizen/index.jsp" class="btn btn-secondary">
-                    🏠 Dashboard
+                    Dashboard
                 </a>
             </div>
         </div>

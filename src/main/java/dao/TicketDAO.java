@@ -239,4 +239,64 @@ public interface TicketDAO {
      * @throws DAOException if database error occurs
      */
     int getEstimatedWaitingTime(int agencyId, int serviceId, int position) throws DAOException;
+
+    /**
+     * Find tickets by citizen ID
+     * 
+     * @param citizenId The citizen ID
+     * @return List of tickets for the citizen
+     * @throws DAOException if database error occurs
+     */
+    List<Ticket> findByCitizenId(int citizenId) throws DAOException;
+
+    /**
+     * Get the ticket currently being served by an employee
+     * 
+     * @param employeeId The employee ID
+     * @return The current ticket or null if none
+     * @throws DAOException if database error occurs
+     */
+    Ticket getCurrentTicketForEmployee(int employeeId) throws DAOException;
+
+    /**
+     * Get tickets by employee and status
+     * 
+     * @param employeeId The employee ID
+     * @param status     The ticket status
+     * @return List of tickets
+     * @throws DAOException if database error occurs
+     */
+    List<Ticket> getTicketsByEmployeeAndStatus(int employeeId, String status) throws DAOException;
+
+    /**
+     * Call next ticket for an employee
+     * Updates the ticket status to IN_PROGRESS and assigns to employee's counter
+     * 
+     * @param employeeId The employee ID
+     * @return The called ticket or null if no tickets waiting
+     * @throws DAOException if database error occurs
+     */
+    Ticket callNextTicket(int employeeId) throws DAOException;
+
+    /**
+     * Get average service time in minutes based on recently completed tickets
+     * Calculates from last 20 completed tickets (called_at to completed_at)
+     * Returns default 5 minutes if no data available
+     * 
+     * @param serviceId The service ID
+     * @param agencyId  The agency ID
+     * @return Average service time in minutes
+     * @throws DAOException if database error occurs
+     */
+    double getAverageServiceTime(int serviceId, int agencyId) throws DAOException;
+
+    /**
+     * Get position of ticket in queue (how many tickets ahead)
+     * Only counts WAITING tickets with same service at same agency
+     * 
+     * @param ticketId The ticket ID
+     * @return Number of tickets ahead in queue (0 if ticket is next or not waiting)
+     * @throws DAOException if database error occurs
+     */
+    int getPositionInQueue(int ticketId) throws DAOException;
 }

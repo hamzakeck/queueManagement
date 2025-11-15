@@ -548,6 +548,244 @@ public class TicketDAOImpl implements TicketDAO {
         }
     }
 
+    @Override
+    public List<Ticket> findByCitizenId(int citizenId) throws DAOException {
+        String sql = "SELECT * FROM tickets WHERE citizen_id = ? ORDER BY created_at DESC";
+        List<Ticket> tickets = new ArrayList<>();
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, citizenId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    tickets.add(extractTicket(rs));
+                }
+                return tickets;
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error finding tickets by citizen ID: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Ticket getCurrentTicketForEmployee(int employeeId) throws DAOException {
+        // Get employee's counter_id first
+        String counterSql = "SELECT counter_id FROM employees WHERE id = ?";
+        int counterId = 0;
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(counterSql)) {
+
+            pstmt.setInt(1, employeeId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    counterId = rs.getInt("counter_id");
+                }
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error getting employee counter: " + e.getMessage(), e);
+        }
+
+        if (counterId == 0) {
+            return null;
+        }
+
+        // Get current ticket being served at this counter
+        String ticketSql = "SELECT * FROM tickets WHERE counter_id = ? AND status = 'IN_PROGRESS' LIMIT 1";
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(ticketSql)) {
+
+            pstmt.setInt(1, counterId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return extractTicket(rs);
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error getting current ticket for employee: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Ticket> getTicketsByEmployeeAndStatus(int employeeId, String status) throws DAOException {
+        List<Ticket> tickets = new ArrayList<>();
+
+        // Get employee's agency_id and service_id
+        String employeeSql = "SELECT agency_id, service_id FROM employees WHERE id = ?";
+        int agencyId = 0;
+        int serviceId = 0;
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(employeeSql)) {
+
+            pstmt.setInt(1, employeeId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    agencyId = rs.getInt("agency_id");
+                    serviceId = rs.getInt("service_id");
+                }
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error getting employee info: " + e.getMessage(), e);
+        }
+
+        if (agencyId == 0 || serviceId == 0) {
+            return tickets;
+        }
+
+        // Get tickets for this service at this agency with the given status
+        String ticketSql = "SELECT * FROM tickets WHERE agency_id = ? AND service_id = ? AND status = ? ORDER BY position, created_at";
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(ticketSql)) {
+
+            pstmt.setInt(1, agencyId);
+            pstmt.setInt(2, serviceId);
+            pstmt.setString(3, status);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    tickets.add(extractTicket(rs));
+                }
+                return tickets;
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error getting tickets by employee and status: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Ticket callNextTicket(int employeeId) throws DAOException {
+        // Get employee info
+        String employeeSql = "SELECT agency_id, service_id, counter_id FROM employees WHERE id = ?";
+        int agencyId = 0;
+        int serviceId = 0;
+        int counterId = 0;
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(employeeSql)) {
+
+            pstmt.setInt(1, employeeId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    agencyId = rs.getInt("agency_id");
+                    serviceId = rs.getInt("service_id");
+                    counterId = rs.getInt("counter_id");
+                }
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error getting employee info: " + e.getMessage(), e);
+        }
+
+        if (agencyId == 0 || serviceId == 0) {
+            return null;
+        }
+
+        // Get the next waiting ticket
+        Ticket nextTicket = getNextTicket(agencyId, serviceId);
+
+        if (nextTicket != null && counterId > 0) {
+            // Update ticket to IN_PROGRESS and assign to counter
+            String updateSql = "UPDATE tickets SET status = 'IN_PROGRESS', counter_id = ?, called_at = NOW() WHERE id = ?";
+
+            try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                    PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+
+                pstmt.setInt(1, counterId);
+                pstmt.setInt(2, nextTicket.getId());
+                pstmt.executeUpdate();
+
+                // Refresh ticket data
+                return findById(nextTicket.getId());
+            } catch (SQLException e) {
+                throw new DAOException("Error calling next ticket: " + e.getMessage(), e);
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public double getAverageServiceTime(int serviceId, int agencyId) throws DAOException {
+        // Get last 20 completed tickets and calculate average time
+        String sql = "SELECT called_at, completed_at FROM tickets " +
+                "WHERE service_id = ? AND agency_id = ? " +
+                "AND status = 'COMPLETED' " +
+                "AND called_at IS NOT NULL AND completed_at IS NOT NULL " +
+                "ORDER BY completed_at DESC LIMIT 20";
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, serviceId);
+            pstmt.setInt(2, agencyId);
+
+            int totalMinutes = 0;
+            int count = 0;
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Timestamp calledAt = rs.getTimestamp("called_at");
+                    Timestamp completedAt = rs.getTimestamp("completed_at");
+
+                    if (calledAt != null && completedAt != null) {
+                        // Calculate difference in minutes
+                        long diffMillis = completedAt.getTime() - calledAt.getTime();
+                        int minutes = (int) (diffMillis / 60000);
+                        totalMinutes += minutes;
+                        count++;
+                    }
+                }
+            }
+
+            // Return average, or default 5 minutes if no data
+            if (count > 0) {
+                return (double) totalMinutes / count;
+            } else {
+                return 5.0; // Default 5 minutes
+            }
+
+        } catch (SQLException e) {
+            throw new DAOException("Error calculating average service time: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public int getPositionInQueue(int ticketId) throws DAOException {
+        // First get the ticket info
+        Ticket ticket = findById(ticketId);
+        if (ticket == null || !"WAITING".equals(ticket.getStatus())) {
+            return 0; // Not waiting, no position
+        }
+
+        // Count tickets created before this one with same service/agency
+        String sql = "SELECT COUNT(*) as position FROM tickets " +
+                "WHERE service_id = ? AND agency_id = ? " +
+                "AND status = 'WAITING' " +
+                "AND created_at < (SELECT created_at FROM tickets WHERE id = ?)";
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, ticket.getServiceId());
+            pstmt.setInt(2, ticket.getAgencyId());
+            pstmt.setInt(3, ticketId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("position");
+                }
+                return 0;
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error getting position in queue: " + e.getMessage(), e);
+        }
+    }
+
     /**
      * Extract a Ticket object from ResultSet
      */

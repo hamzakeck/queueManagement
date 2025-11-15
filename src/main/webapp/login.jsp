@@ -118,7 +118,7 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>🔗 Queue Management</h1>
+            <h1>Queue Management</h1>
             <p>Sign in to your account</p>
         </div>
 

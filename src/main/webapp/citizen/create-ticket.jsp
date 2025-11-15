@@ -21,7 +21,7 @@
     ServiceDAO serviceDAO = DAOFactory.getInstance().getServiceDAO();
     
     List<Agency> agencies = agencyDAO.findAll();
-    List<Service> services = serviceDAO.findActive();
+    List<Service> services = serviceDAO.findAllActive();
     
     String error = request.getParameter("error");
     String success = request.getParameter("success");
@@ -185,7 +185,7 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>🎫 Create New Ticket</h1>
+        <h1>Create New Ticket</h1>
         <a href="<%= request.getContextPath() %>/citizen/index.jsp" class="back-btn">← Back to Dashboard</a>
     </div>
 
@@ -207,7 +207,7 @@
             <% } %>
 
             <div class="info-box">
-                <h4>📌 How it works</h4>
+                <h4>How it works</h4>
                 <p>1. Choose the agency location<br>
                    2. Select the service you need<br>
                    3. Click "Get Ticket" to receive your queue number</p>
@@ -233,7 +233,7 @@
                         <% for (Service service : services) { %>
                             <option value="<%= service.getId() %>">
                                 <%= service.getName() %> 
-                                <% if (service.getEstimatedTime() != null) { %>
+                                <% if (service.getEstimatedTime() > 0) { %>
                                     (≈ <%= service.getEstimatedTime() %> min)
                                 <% } %>
                             </option>
@@ -241,7 +241,7 @@
                     </select>
                 </div>
 
-                <button type="submit" class="submit-btn">🎫 Get My Ticket</button>
+                <button type="submit" class="submit-btn">Get My Ticket</button>
             </form>
         </div>
     </div>

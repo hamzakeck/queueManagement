@@ -139,7 +139,7 @@
 <body>
     <div class="register-container">
         <div class="register-header">
-            <h1>🔗 Queue Management</h1>
+            <h1>Queue Management</h1>
             <p>Create your account</p>
         </div>
 

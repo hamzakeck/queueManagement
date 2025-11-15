@@ -46,6 +46,16 @@ public class AgencyDAOImpl implements AgencyDAO {
     }
 
     @Override
+    public int save(Agency agency) throws DAOException {
+        if (agency.getId() > 0) {
+            update(agency);
+            return agency.getId();
+        } else {
+            return create(agency);
+        }
+    }
+
+    @Override
     public Agency findById(int id) throws DAOException {
         String sql = "SELECT * FROM agencies WHERE id = ?";
 
