@@ -34,8 +34,8 @@ public class ManageEmployeesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminId") == null) {
-            response.sendRedirect(request.getContextPath() + "/admin/AdminLoginServlet");
+        if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
@@ -59,8 +59,8 @@ public class ManageEmployeesServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminId") == null) {
-            response.sendRedirect(request.getContextPath() + "/admin/AdminLoginServlet");
+        if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 

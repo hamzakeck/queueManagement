@@ -1,7 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
 <%@ page import="models.Ticket" %>
+<%@ page import="models.Service" %>
+<%@ page import="models.Agency" %>
 <%@ page import="dao.TicketDAO" %>
+<%@ page import="dao.ServiceDAO" %>
+<%@ page import="dao.AgencyDAO" %>
 <%@ page import="dao.DAOFactory" %>
 <%
     String userEmail = (String) session.getAttribute("userEmail");
@@ -14,7 +20,22 @@
     }
 
     TicketDAO ticketDAO = DAOFactory.getInstance().getTicketDAO();
+    ServiceDAO serviceDAO = DAOFactory.getInstance().getServiceDAO();
+    AgencyDAO agencyDAO = DAOFactory.getInstance().getAgencyDAO();
+    
     List<Ticket> myTickets = ticketDAO.findByCitizenId(citizenId);
+    
+    // Load service and agency names
+    Map<Integer, String> serviceNames = new HashMap<>();
+    Map<Integer, String> agencyNames = new HashMap<>();
+    
+    for (Service service : serviceDAO.findAll()) {
+        serviceNames.put(service.getId(), service.getName());
+    }
+    
+    for (Agency agency : agencyDAO.findAll()) {
+        agencyNames.put(agency.getId(), agency.getName());
+    }
 %>
 <!DOCTYPE html>
 <html>
@@ -79,33 +100,6 @@
     .page-title p {
         color: #6c757d;
         font-size: 0.875rem;
-    }
-
-    .connection-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0.75rem;
-        background: #e9ecef;
-        border-radius: 0.25rem;
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
-    }
-
-    .connection-status.connected {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #6c757d;
-    }
-
-    .status-dot.connected {
-        background: #198754;
     }
 
     .tickets-list {
@@ -267,11 +261,7 @@
     <div class="container">
         <div class="page-title">
             <h2>My Tickets</h2>
-            <p>Real-time updates via WebSocket</p>
-            <div id="connectionStatus" class="connection-status">
-                <span class="status-dot"></span>
-                <span>Connecting...</span>
-            </div>
+            <p>Track your queue position and status</p>
         </div>
 
         <% if (myTickets == null || myTickets.isEmpty()) { %>
@@ -288,6 +278,8 @@
                     if (ticketStatus == null || ticketStatus.isEmpty()) {
                         ticketStatus = "WAITING";
                     }
+                    String serviceName = serviceNames.getOrDefault(ticket.getServiceId(), "Unknown Service");
+                    String agencyName = agencyNames.getOrDefault(ticket.getAgencyId(), "Unknown Agency");
                 %>
                 <div class="ticket-card" data-ticket-id="<%= ticket.getId() %>">
                     <div class="ticket-header">
@@ -300,19 +292,15 @@
                     <div class="ticket-info">
                         <div class="info-item">
                             <span class="info-label">Service</span>
-                            <span class="info-value">Service #<%= ticket.getServiceId() %></span>
+                            <span class="info-value"><%= serviceName %></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Agency</span>
-                            <span class="info-value">Agency #<%= ticket.getAgencyId() %></span>
+                            <span class="info-value"><%= agencyName %></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Created</span>
                             <span class="info-value"><%= ticket.getCreatedAt() != null ? ticket.getCreatedAt().toString().substring(0, 16).replace("T", " ") : "N/A" %></span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Ticket ID</span>
-                            <span class="info-value">#<%= ticket.getId() %></span>
                         </div>
                     </div>
 
@@ -339,14 +327,8 @@
     </div>
 
     <script>
-        // === WEBSOCKET: Real-time updates ===
-        // This connects to the server and listens for updates
-        // When an employee calls a ticket, everyone gets notified instantly!
+        let ws;
         
-        let ws;  // This will store our websocket connection
-        const statusEl = document.getElementById('connectionStatus');
-        
-        // Connect to the server
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = protocol + '//' + window.location.host + '<%= request.getContextPath() %>/queue-updates';
@@ -354,48 +336,23 @@
             try {
                 ws = new WebSocket(wsUrl);
                 
-                // When connected
-                ws.onopen = function() {
-                    console.log('Connected to server!');
-                    statusEl.className = 'connection-status connected';
-                    statusEl.querySelector('.status-dot').className = 'status-dot connected';
-                    statusEl.querySelector('span:last-child').textContent = 'Connected';
-                };
-                
-                // When we get a message from server
                 ws.onmessage = function(event) {
-                    console.log('Got update:', event.data);
                     try {
-                        const data = JSON.parse(event.data);  // Convert JSON string to object
-                        
-                        // If queue changed, update wait times for all waiting tickets
+                        const data = JSON.parse(event.data);
                         if (data.action === 'queueUpdate') {
                             updateAllWaitTimes();
                         }
-                        
-                        updateTicketStatus(data);  // Update the page
+                        updateTicketStatus(data);
                     } catch (e) {
                         console.error('Error:', e);
                     }
                 };
                 
-                // When disconnected
                 ws.onclose = function() {
-                    console.log('Disconnected');
-                    statusEl.className = 'connection-status';
-                    statusEl.querySelector('.status-dot').className = 'status-dot';
-                    statusEl.querySelector('span:last-child').textContent = 'Disconnected';
-                    
-                    // Try to reconnect after 3 seconds
                     setTimeout(connectWebSocket, 3000);
                 };
-                
-                ws.onerror = function(error) {
-                    console.error('Connection error:', error);
-                };
             } catch (error) {
-                console.error('Failed to connect:', error);
-                statusEl.querySelector('span:last-child').textContent = 'Connection failed';
+                console.error('WebSocket failed:', error);
             }
         }
         
