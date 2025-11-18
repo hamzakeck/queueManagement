@@ -283,11 +283,17 @@
         <% } else { %>
             <div class="tickets-list">
                 <% for (Ticket ticket : myTickets) { %>
+                <%
+                    String ticketStatus = ticket.getStatus();
+                    if (ticketStatus == null || ticketStatus.isEmpty()) {
+                        ticketStatus = "WAITING";
+                    }
+                %>
                 <div class="ticket-card" data-ticket-id="<%= ticket.getId() %>">
                     <div class="ticket-header">
                         <div class="ticket-number"><%= ticket.getTicketNumber() %></div>
-                        <div class="status-badge status-<%= ticket.getStatus().toLowerCase() %>">
-                            <%= ticket.getStatus() %>
+                        <div class="status-badge status-<%= ticketStatus.toLowerCase() %>">
+                            <%= ticketStatus %>
                         </div>
                     </div>
                     
@@ -310,7 +316,7 @@
                         </div>
                     </div>
 
-                    <% if ("WAITING".equals(ticket.getStatus())) { %>
+                    <% if ("WAITING".equals(ticketStatus)) { %>
                     <div class="queue-stats">
                         <div class="stat-item">
                             <div class="stat-value" id="position-<%= ticket.getId() %>"><%= ticket.getPosition() %></div>
