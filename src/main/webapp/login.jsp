@@ -161,13 +161,13 @@
             
             switch(role) {
                 case 'admin':
-                    form.action = contextPath + '/admin/LoginServlet';
+                    form.action = contextPath + '/admin/AdminLoginServlet';
                     break;
                 case 'employee':
-                    form.action = contextPath + '/employee/LoginServlet';
+                    form.action = contextPath + '/employee/EmployeeLoginServlet';
                     break;
                 case 'citizen':
-                    form.action = contextPath + '/citizen/LoginServlet';
+                    form.action = contextPath + '/citizen/CitizenLoginServlet';
                     break;
                 default:
                     form.action = '';

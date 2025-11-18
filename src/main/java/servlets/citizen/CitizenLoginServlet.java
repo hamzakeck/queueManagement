@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpSession;
 /**
  * Citizen Login Servlet - handles authentication for citizens
  */
-@WebServlet("/citizen/LoginServlet")
+@WebServlet("/citizen/CitizenLoginServlet")
 public class CitizenLoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private CitizenDAO citizenDAO;

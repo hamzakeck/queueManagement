@@ -10,18 +10,19 @@
 </head>
 <body>
     <% 
-    if (session.getAttribute("adminId") == null) {
-        response.sendRedirect(request.getContextPath() + "/admin/AdminLoginServlet");
+    String userEmail = (String) session.getAttribute("userEmail");
+    String userRole = (String) session.getAttribute("userRole");
+    if (userEmail == null || userRole == null || !"admin".equals(userRole)) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
-    String adminEmail = (String) session.getAttribute("adminEmail");
     %>
     
     <header class="navbar">
         <div class="container">
             <div class="nav-brand">Queue Management - Admin</div>
             <nav>
-                <span class="nav-user"><%=adminEmail%></span>
+                <span class="nav-user"><%=userEmail%></span>
                 <a href="<%=request.getContextPath()%>/LogoutServlet" class="btn btn-secondary">Logout</a>
             </nav>
         </div>

@@ -286,6 +286,9 @@
                         <input type="hidden" name="ticketId" value="<%= currentTicket.getId() %>">
                         <button type="submit" class="btn btn-success">Complete Service</button>
                     </form>
+                    <form action="<%= request.getContextPath() %>/employee/HoldTicketServlet" method="POST">
+                        <button type="submit" class="btn btn-primary" style="background:#6c757d">Put On Hold</button>
+                    </form>
                 </div>
             <% } %>
         </div>
@@ -313,6 +316,10 @@
                     <% } %>
                 </div>
             <% } %>
+        </div>
+        
+        <div style="margin-top:2rem; text-align:center;">
+            <a href="<%= request.getContextPath() %>/employee/history.jsp" class="btn" style="border:1px solid #dee2e6; color:#212529; background:#fff;">Consult Ticket History</a>
         </div>
     </div>
 

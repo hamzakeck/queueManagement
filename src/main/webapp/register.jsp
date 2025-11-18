@@ -184,6 +184,16 @@
                 <label for="agencyId">Agency ID:</label>
                 <input type="number" id="agencyId" name="agencyId" placeholder="1">
             </div>
+            <!-- Employee service field -->
+            <div class="form-group hidden-field" id="serviceIdField">
+                <label for="serviceId">Service ID:</label>
+                <input type="number" id="serviceId" name="serviceId" placeholder="1">
+            </div>
+            <!-- Employee counter field (optional) -->
+            <div class="form-group hidden-field" id="counterIdField">
+                <label for="counterId">Counter ID (optional):</label>
+                <input type="number" id="counterId" name="counterId" placeholder="1">
+            </div>
 
             <div class="form-group">
                 <label for="password">Password:</label>
@@ -211,14 +221,22 @@
             var role = document.getElementById('role').value;
             var cinField = document.getElementById('cinField');
             var agencyIdField = document.getElementById('agencyIdField');
+            var serviceIdField = document.getElementById('serviceIdField');
+            var counterIdField = document.getElementById('counterIdField');
             var cin = document.getElementById('cin');
             var agencyId = document.getElementById('agencyId');
+            var serviceId = document.getElementById('serviceId');
+            var counterId = document.getElementById('counterId');
 
             // Hide all role-specific fields
             cinField.classList.add('hidden-field');
             agencyIdField.classList.add('hidden-field');
+            serviceIdField.classList.add('hidden-field');
+            counterIdField.classList.add('hidden-field');
             cin.required = false;
             agencyId.required = false;
+            serviceId.required = false;
+            counterId.required = false;
 
             // Show relevant fields based on role
             if (role === 'citizen') {
@@ -227,6 +245,9 @@
             } else if (role === 'employee') {
                 agencyIdField.classList.remove('hidden-field');
                 agencyId.required = true;
+                serviceIdField.classList.remove('hidden-field');
+                serviceId.required = true;
+                counterIdField.classList.remove('hidden-field');
             }
         }
 

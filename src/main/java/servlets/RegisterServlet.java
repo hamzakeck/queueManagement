@@ -62,10 +62,30 @@ public class RegisterServlet extends HttpServlet {
                 administratorDAO.create(admin);
 
             } else if ("employee".equals(role)) {
-                String agencyId = request.getParameter("agencyId");
-                if (agencyId == null || agencyId.trim().isEmpty()) {
-                    response.sendRedirect(
-                            request.getContextPath() + "/register.jsp?error=Agency ID is required for employees");
+                String agencyIdStr = request.getParameter("agencyId");
+                String serviceIdStr = request.getParameter("serviceId");
+                String counterIdStr = request.getParameter("counterId");
+
+                if (agencyIdStr == null || agencyIdStr.trim().isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=Agency ID is required for employees");
+                    return;
+                }
+                if (serviceIdStr == null || serviceIdStr.trim().isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=Service ID is required for employees");
+                    return;
+                }
+
+                int agencyIdVal;
+                int serviceIdVal;
+                int counterIdVal = 0; // optional
+                try {
+                    agencyIdVal = Integer.parseInt(agencyIdStr);
+                    serviceIdVal = Integer.parseInt(serviceIdStr);
+                    if (counterIdStr != null && !counterIdStr.trim().isEmpty()) {
+                        counterIdVal = Integer.parseInt(counterIdStr);
+                    }
+                } catch (NumberFormatException nfe) {
+                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=Invalid numeric value for agency/service/counter");
                     return;
                 }
 
@@ -74,7 +94,9 @@ public class RegisterServlet extends HttpServlet {
                 employee.setLastName(lastName);
                 employee.setEmail(email);
                 employee.setPassword(password);
-                employee.setAgencyId(Integer.parseInt(agencyId));
+                employee.setAgencyId(agencyIdVal);
+                employee.setServiceId(serviceIdVal);
+                employee.setCounterId(counterIdVal);
                 employeeDAO.create(employee);
 
             } else if ("citizen".equals(role)) {
