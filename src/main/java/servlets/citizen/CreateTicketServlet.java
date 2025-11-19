@@ -40,6 +40,25 @@ public class CreateTicketServlet extends HttpServlet {
         }
 
         try {
+            // Check if user already has an active ticket (WAITING, CALLED, or IN_PROGRESS)
+            java.util.List<Ticket> allTickets = ticketDAO.findByCitizenId(citizenId);
+            boolean hasActiveTicket = false;
+            if (allTickets != null) {
+                for (Ticket t : allTickets) {
+                    String status = t.getStatus();
+                    if ("WAITING".equals(status) || "CALLED".equals(status) || "IN_PROGRESS".equals(status)) {
+                        hasActiveTicket = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasActiveTicket) {
+                response.sendRedirect(request.getContextPath() +
+                        "/citizen/create-ticket.jsp?error=You already have an active ticket. Please complete or cancel your current ticket before creating a new one.");
+                return;
+            }
+
             // Get form parameters
             String agencyIdStr = request.getParameter("agencyId");
             String serviceIdStr = request.getParameter("serviceId");
@@ -62,16 +81,16 @@ public class CreateTicketServlet extends HttpServlet {
             ticket.setServiceId(serviceId);
             ticket.setStatus("WAITING");
 
-            // Generate ticket number and get position
+            // Generate ticket number and get position BEFORE creating
             String ticketNumber = ticketDAO.generateTicketNumber(agencyId, serviceId);
             ticket.setTicketNumber(ticketNumber);
+
+            int position = ticketDAO.getNextPosition(agencyId, serviceId);
+            ticket.setPosition(position);
 
             // Create the ticket in database
             int ticketId = ticketDAO.create(ticket);
             ticket.setId(ticketId);
-
-            // Get the position in queue
-            int position = ticketDAO.getNextPosition(agencyId, serviceId);
 
             // Store ticket info in session for confirmation page
             session.setAttribute("newTicketId", ticketId);

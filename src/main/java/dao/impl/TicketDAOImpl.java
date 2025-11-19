@@ -23,32 +23,48 @@ public class TicketDAOImpl implements TicketDAO {
     public int create(Ticket ticket) throws DAOException {
         String sql = "INSERT INTO tickets (ticket_number, citizen_id, service_id, agency_id, status, position) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseFactory.getInstance().getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        // Retry up to 3 times in case of duplicate key error
+        int maxRetries = 3;
+        for (int attempt = 0; attempt < maxRetries; attempt++) {
+            try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                    PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            pstmt.setString(1, ticket.getTicketNumber());
-            pstmt.setInt(2, ticket.getCitizenId());
-            pstmt.setInt(3, ticket.getServiceId());
-            pstmt.setInt(4, ticket.getAgencyId());
-            pstmt.setString(5, ticket.getStatus());
-            pstmt.setInt(6, ticket.getPosition());
-
-            int affectedRows = pstmt.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new DAOException("Creating ticket failed, no rows affected.");
-            }
-
-            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
-                } else {
-                    throw new DAOException("Creating ticket failed, no ID obtained.");
+                // If this is a retry, regenerate the ticket number
+                if (attempt > 0) {
+                    String newTicketNumber = generateTicketNumber(ticket.getAgencyId(), ticket.getServiceId());
+                    ticket.setTicketNumber(newTicketNumber);
                 }
+
+                pstmt.setString(1, ticket.getTicketNumber());
+                pstmt.setInt(2, ticket.getCitizenId());
+                pstmt.setInt(3, ticket.getServiceId());
+                pstmt.setInt(4, ticket.getAgencyId());
+                pstmt.setString(5, ticket.getStatus());
+                pstmt.setInt(6, ticket.getPosition());
+
+                int affectedRows = pstmt.executeUpdate();
+
+                if (affectedRows == 0) {
+                    throw new DAOException("Creating ticket failed, no rows affected.");
+                }
+
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    } else {
+                        throw new DAOException("Creating ticket failed, no ID obtained.");
+                    }
+                }
+            } catch (SQLException e) {
+                // Check if it's a duplicate key error
+                if (e.getMessage().contains("Duplicate entry") && attempt < maxRetries - 1) {
+                    // Retry with a new ticket number
+                    continue;
+                }
+                throw new DAOException("Error creating ticket: " + e.getMessage(), e);
             }
-        } catch (SQLException e) {
-            throw new DAOException("Error creating ticket: " + e.getMessage(), e);
         }
+        throw new DAOException("Failed to create ticket after " + maxRetries + " attempts");
     }
 
     @Override
@@ -301,19 +317,23 @@ public class TicketDAOImpl implements TicketDAO {
         // Get service letter (A-Z based on service ID)
         String serviceLetter = String.valueOf((char) ('A' + ((serviceId - 1) % 26)));
 
-        // Get today's count for this service at this agency
-        String sql = "SELECT COUNT(*) FROM tickets WHERE agency_id = ? AND service_id = ? AND DATE(created_at) = CURDATE()";
+        // Get the highest ticket number for this service at this agency today
+        String sql = "SELECT IFNULL(MAX(CAST(SUBSTRING(ticket_number, 2) AS UNSIGNED)), 0) FROM tickets " +
+                "WHERE agency_id = ? AND service_id = ? AND DATE(created_at) = CURDATE() " +
+                "AND ticket_number LIKE ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, agencyId);
             pstmt.setInt(2, serviceId);
+            pstmt.setString(3, serviceLetter + "%");
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    int count = rs.getInt(1) + 1;
-                    return serviceLetter + String.format("%03d", count);
+                    int maxNumber = rs.getInt(1);
+                    int nextNumber = maxNumber + 1;
+                    return serviceLetter + String.format("%03d", nextNumber);
                 }
                 return serviceLetter + "001";
             }

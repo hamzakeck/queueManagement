@@ -70,15 +70,14 @@
     <div class="container">
         <div class="page-header">
             <h2>Manage Employees</h2>
-            <button onclick="showAddForm()" class="btn btn-primary">Add New Employee</button>
+            <p style="color: #6c757d; font-size: 0.875rem; margin-top: 0.5rem;">To add employees, go to <a href="<%=request.getContextPath()%>/admin/ManageUsersServlet" style="color: #007bff; text-decoration: none;">Manage Users</a> and promote a citizen to employee role.</p>
         </div>
 
         <% String success = request.getParameter("success");
            String error = request.getParameter("error");
            if (success != null) { %>
             <div class="alert alert-success">
-                <%= success.equals("added") ? "Employee added successfully!" : 
-                    success.equals("updated") ? "Employee updated successfully!" : 
+                <%= success.equals("updated") ? "Employee updated successfully!" : 
                     "Employee deleted successfully!" %>
             </div>
         <% } else if (error != null) { %>
@@ -87,55 +86,6 @@
 
         <% List<Agency> agencies = (List<Agency>) request.getAttribute("agencies");
            List<Service> services = (List<Service>) request.getAttribute("services"); %>
-
-        <div id="addForm" style="display:none; margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-            <h3>Add New Employee</h3>
-            <form method="post" action="<%=request.getContextPath()%>/admin/ManageEmployeesServlet">
-                <input type="hidden" name="action" value="add">
-                <div class="form-group">
-                    <label>First Name:</label>
-                    <input type="text" name="firstName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Last Name:</label>
-                    <input type="text" name="lastName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" name="email" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Password:</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Agency:</label>
-                    <select name="agencyId" class="form-control" required>
-                        <option value="">Select Agency</option>
-                        <% if (agencies != null) {
-                            for (Agency agency : agencies) { %>
-                        <option value="<%=agency.getId()%>"><%=agency.getName()%></option>
-                        <% } } %>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Service:</label>
-                    <select name="serviceId" class="form-control" required>
-                        <option value="">Select Service</option>
-                        <% if (services != null) {
-                            for (Service service : services) { %>
-                        <option value="<%=service.getId()%>"><%=service.getName()%></option>
-                        <% } } %>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Counter ID:</label>
-                    <input type="number" name="counterId" class="form-control" min="1" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Add Employee</button>
-                <button type="button" onclick="hideAddForm()" class="btn btn-secondary">Cancel</button>
-            </form>
-        </div>
 
         <table class="data-table">
             <thead>
@@ -226,12 +176,6 @@
     </div>
 
     <script>
-        function showAddForm() {
-            document.getElementById('addForm').style.display = 'block';
-        }
-        function hideAddForm() {
-            document.getElementById('addForm').style.display = 'none';
-        }
         function editEmployee(id, firstName, lastName, email, agencyId, serviceId, counterId) {
             document.getElementById('editId').value = id;
             document.getElementById('editFirstName').value = firstName;

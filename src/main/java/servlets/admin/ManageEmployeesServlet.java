@@ -67,28 +67,7 @@ public class ManageEmployeesServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         try {
-            if ("add".equals(action)) {
-                String firstName = request.getParameter("firstName");
-                String lastName = request.getParameter("lastName");
-                String email = request.getParameter("email");
-                String password = request.getParameter("password");
-                int agencyId = Integer.parseInt(request.getParameter("agencyId"));
-                int serviceId = Integer.parseInt(request.getParameter("serviceId"));
-                int counterId = Integer.parseInt(request.getParameter("counterId"));
-
-                Employee employee = new Employee();
-                employee.setFirstName(firstName);
-                employee.setLastName(lastName);
-                employee.setEmail(email);
-                employee.setPassword(password);
-                employee.setAgencyId(agencyId);
-                employee.setServiceId(serviceId);
-                employee.setCounterId(counterId);
-
-                employeeDAO.save(employee);
-                response.sendRedirect(request.getContextPath() + "/admin/ManageEmployeesServlet?success=added");
-
-            } else if ("edit".equals(action)) {
+            if ("edit".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("id"));
                 String firstName = request.getParameter("firstName");
                 String lastName = request.getParameter("lastName");

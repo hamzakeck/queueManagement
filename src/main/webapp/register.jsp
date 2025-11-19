@@ -166,16 +166,6 @@
             </div>
 
             <div class="form-group">
-                <label for="role">Role:</label>
-                <select id="role" name="role" required onchange="updateFieldVisibility()">
-                    <option value="">-- Select Role --</option>
-                    <option value="admin">Administrator</option>
-                    <option value="employee">Employee</option>
-                    <option value="citizen">Citizen</option>
-                </select>
-            </div>
-
-            <div class="form-group">
                 <label for="firstName">First Name:</label>
                 <input type="text" id="firstName" name="firstName" required placeholder="John">
             </div>
@@ -190,26 +180,9 @@
                 <input type="email" id="email" name="email" required placeholder="your@email.com">
             </div>
 
-            <!-- Citizen specific field -->
-            <div class="form-group hidden-field" id="cinField">
+            <div class="form-group">
                 <label for="cin">CIN (National ID):</label>
-                <input type="text" id="cin" name="cin" placeholder="AB123456">
-            </div>
-
-            <!-- Employee specific field -->
-            <div class="form-group hidden-field" id="agencyIdField">
-                <label for="agencyId">Agency ID:</label>
-                <input type="number" id="agencyId" name="agencyId" placeholder="1">
-            </div>
-            <!-- Employee service field -->
-            <div class="form-group hidden-field" id="serviceIdField">
-                <label for="serviceId">Service ID:</label>
-                <input type="number" id="serviceId" name="serviceId" placeholder="1">
-            </div>
-            <!-- Employee counter field (optional) -->
-            <div class="form-group hidden-field" id="counterIdField">
-                <label for="counterId">Counter ID (optional):</label>
-                <input type="number" id="counterId" name="counterId" placeholder="1">
+                <input type="text" id="cin" name="cin" required placeholder="AB123456">
             </div>
 
             <div class="form-group">
@@ -233,40 +206,6 @@
     </div>
 
     <script>
-        function updateFieldVisibility() {
-            var role = document.getElementById('role').value;
-            var cinField = document.getElementById('cinField');
-            var agencyIdField = document.getElementById('agencyIdField');
-            var serviceIdField = document.getElementById('serviceIdField');
-            var counterIdField = document.getElementById('counterIdField');
-            var cin = document.getElementById('cin');
-            var agencyId = document.getElementById('agencyId');
-            var serviceId = document.getElementById('serviceId');
-            var counterId = document.getElementById('counterId');
-
-            // Hide all role-specific fields
-            cinField.classList.add('hidden-field');
-            agencyIdField.classList.add('hidden-field');
-            serviceIdField.classList.add('hidden-field');
-            counterIdField.classList.add('hidden-field');
-            cin.required = false;
-            agencyId.required = false;
-            serviceId.required = false;
-            counterId.required = false;
-
-            // Show relevant fields based on role
-            if (role === 'citizen') {
-                cinField.classList.remove('hidden-field');
-                cin.required = true;
-            } else if (role === 'employee') {
-                agencyIdField.classList.remove('hidden-field');
-                agencyId.required = true;
-                serviceIdField.classList.remove('hidden-field');
-                serviceId.required = true;
-                counterIdField.classList.remove('hidden-field');
-            }
-        }
-
         function validateForm() {
             var password = document.getElementById('password').value;
             var confirmPassword = document.getElementById('confirmPassword').value;
@@ -291,11 +230,6 @@
 
             return true;
         }
-
-        // Initialize field visibility on page load
-        window.addEventListener('load', function() {
-            updateFieldVisibility();
-        });
     </script>
 </body>
 </html>

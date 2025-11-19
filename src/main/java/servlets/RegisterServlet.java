@@ -37,11 +37,11 @@ public class RegisterServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String role = request.getParameter("role");
         String firstName = request.getParameter("firstName");
         String lastName = request.getParameter("lastName");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String cin = request.getParameter("cin");
 
         try {
             // Check if email already exists across all user types
@@ -52,73 +52,21 @@ public class RegisterServlet extends HttpServlet {
                 return;
             }
 
-            // Register based on role using DAO layer
-            if ("admin".equals(role)) {
-                Administrator admin = new Administrator();
-                admin.setFirstName(firstName);
-                admin.setLastName(lastName);
-                admin.setEmail(email);
-                admin.setPassword(password);
-                administratorDAO.create(admin);
-
-            } else if ("employee".equals(role)) {
-                String agencyIdStr = request.getParameter("agencyId");
-                String serviceIdStr = request.getParameter("serviceId");
-                String counterIdStr = request.getParameter("counterId");
-
-                if (agencyIdStr == null || agencyIdStr.trim().isEmpty()) {
-                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=Agency ID is required for employees");
-                    return;
-                }
-                if (serviceIdStr == null || serviceIdStr.trim().isEmpty()) {
-                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=Service ID is required for employees");
-                    return;
-                }
-
-                int agencyIdVal;
-                int serviceIdVal;
-                int counterIdVal = 0; // optional
-                try {
-                    agencyIdVal = Integer.parseInt(agencyIdStr);
-                    serviceIdVal = Integer.parseInt(serviceIdStr);
-                    if (counterIdStr != null && !counterIdStr.trim().isEmpty()) {
-                        counterIdVal = Integer.parseInt(counterIdStr);
-                    }
-                } catch (NumberFormatException nfe) {
-                    response.sendRedirect(request.getContextPath() + "/register.jsp?error=Invalid numeric value for agency/service/counter");
-                    return;
-                }
-
-                Employee employee = new Employee();
-                employee.setFirstName(firstName);
-                employee.setLastName(lastName);
-                employee.setEmail(email);
-                employee.setPassword(password);
-                employee.setAgencyId(agencyIdVal);
-                employee.setServiceId(serviceIdVal);
-                employee.setCounterId(counterIdVal);
-                employeeDAO.create(employee);
-
-            } else if ("citizen".equals(role)) {
-                String cin = request.getParameter("cin");
-                if (cin == null || cin.trim().isEmpty()) {
-                    response.sendRedirect(
-                            request.getContextPath() + "/register.jsp?error=CIN is required for citizens");
-                    return;
-                }
-
-                Citizen citizen = new Citizen();
-                citizen.setFirstName(firstName);
-                citizen.setLastName(lastName);
-                citizen.setEmail(email);
-                citizen.setPassword(password);
-                citizen.setCin(cin);
-                citizenDAO.create(citizen);
-
-            } else {
-                response.sendRedirect(request.getContextPath() + "/register.jsp?error=Invalid role specified");
+            // Validate CIN
+            if (cin == null || cin.trim().isEmpty()) {
+                response.sendRedirect(
+                        request.getContextPath() + "/register.jsp?error=CIN is required");
                 return;
             }
+
+            // Register as citizen by default
+            Citizen citizen = new Citizen();
+            citizen.setFirstName(firstName);
+            citizen.setLastName(lastName);
+            citizen.setEmail(email);
+            citizen.setPassword(password);
+            citizen.setCin(cin);
+            citizenDAO.create(citizen);
 
             // Registration successful
             response.sendRedirect(request.getContextPath() + "/login.jsp?success=Registration successful");

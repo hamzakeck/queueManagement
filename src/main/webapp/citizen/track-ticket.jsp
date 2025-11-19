@@ -143,9 +143,39 @@
     }
 
     .status-waiting { background: #fff3cd; color: #997404; }
+    .status-called { background: #0dcaf0; color: #055160; font-weight: 700; animation: pulse 2s infinite; }
     .status-in_progress { background: #d1e7dd; color: #0f5132; }
     .status-completed { background: #e9ecef; color: #495057; }
     .status-cancelled { background: #f8d7da; color: #842029; }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .counter-alert {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 600;
+        animation: slideDown 0.5s ease-out;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .counter-alert .counter-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+    }
 
     .ticket-info {
         display: grid;
@@ -328,6 +358,8 @@
 
     <script>
         let ws;
+        let countdownTimers = {}; // Store countdown intervals for each ticket
+        let waitTimes = {}; // Store current wait times in minutes
         
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -356,6 +388,59 @@
             }
         }
         
+        // Start countdown timer for a ticket
+        function startCountdown(ticketId, initialMinutes) {
+            // Clear existing timer if any
+            if (countdownTimers[ticketId]) {
+                clearInterval(countdownTimers[ticketId]);
+            }
+            
+            // Store time in seconds for smooth countdown
+            waitTimes[ticketId] = initialMinutes * 60;
+            
+            // Update display immediately
+            updateCountdownDisplay(ticketId);
+            
+            // Start interval to countdown every second
+            countdownTimers[ticketId] = setInterval(() => {
+                if (waitTimes[ticketId] > 0) {
+                    waitTimes[ticketId]--;
+                    updateCountdownDisplay(ticketId);
+                }
+            }, 1000); // 1000ms = 1 second
+        }
+        
+        // Update countdown display
+        function updateCountdownDisplay(ticketId) {
+            const waitEl = document.getElementById('wait-' + ticketId);
+            if (waitEl) {
+                const totalSeconds = waitTimes[ticketId];
+                if (totalSeconds === 0) {
+                    waitEl.textContent = 'Next!';
+                    waitEl.style.color = '#198754';  // Green color
+                    // Clear timer once we reach 0
+                    if (countdownTimers[ticketId]) {
+                        clearInterval(countdownTimers[ticketId]);
+                        delete countdownTimers[ticketId];
+                    }
+                } else {
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    waitEl.textContent = '~' + minutes + 'm ' + seconds + 's';
+                    waitEl.style.color = '';  // Reset color
+                }
+            }
+        }
+        
+        // Stop countdown for a ticket (when status changes)
+        function stopCountdown(ticketId) {
+            if (countdownTimers[ticketId]) {
+                clearInterval(countdownTimers[ticketId]);
+                delete countdownTimers[ticketId];
+                delete waitTimes[ticketId];
+            }
+        }
+        
         // Update the ticket display when we get new data
         function updateTicketStatus(data) {
             const ticketCards = document.querySelectorAll('.ticket-card');
@@ -376,15 +461,51 @@
                         if (queueStats) {
                             queueStats.style.display = 'none';
                         }
+                        // Stop countdown when status changes from WAITING
+                        const ticketId = card.getAttribute('data-ticket-id');
+                        if (ticketId) {
+                            stopCountdown(ticketId);
+                        }
                     }
                     
-                    // Show notification if ticket is being served
-                    if (data.status === 'IN_PROGRESS') {
-                        showNotification('Your turn! Ticket ' + ticketNumber + ' is now being served');
+                    // Show notification when ticket is called or being served
+                    if (data.status === 'CALLED') {
+                        const counterInfo = data.counterId ? ' at Counter #' + data.counterId : '';
+                        showNotification('Your turn! Please proceed to the designated counter' + counterInfo);
                         playNotificationSound();
+                        
+                        // Add prominent counter alert to the card
+                        addCounterAlert(card, data.counterId);
+                    } else if (data.status === 'IN_PROGRESS') {
+                        const counterInfo = data.counterId ? ' at Counter #' + data.counterId : '';
+                        showNotification('Ticket ' + ticketNumber + ' is now being served' + counterInfo);
+                        playNotificationSound();
+                        
+                        // Add counter alert if not already present
+                        addCounterAlert(card, data.counterId);
                     }
                 }
             });
+        }
+        
+        // Add counter alert to ticket card
+        function addCounterAlert(card, counterId) {
+            // Check if alert already exists
+            if (card.querySelector('.counter-alert')) {
+                return;
+            }
+            
+            const counterNumber = counterId || 'N/A';
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'counter-alert';
+            alertDiv.innerHTML = `
+                <div>YOUR TURN</div>
+                <div class="counter-number">Counter #${counterNumber}</div>
+                <div>Please proceed to the designated counter</div>
+            `;
+            
+            // Insert at the beginning of the card
+            card.insertBefore(alertDiv, card.firstChild);
         }
         
         // Update wait times for all WAITING tickets
@@ -427,16 +548,13 @@
                         queueEl.textContent = (data.position + 1);
                     }
                     
-                    // Update estimated wait time
+                    // Update estimated wait time and start countdown
                     const waitEl = document.getElementById('wait-' + ticketId);
-                    if (waitEl) {
-                        if (data.estimatedWaitMinutes === 0) {
-                            waitEl.textContent = 'Next!';
-                            waitEl.style.color = '#198754';  // Green color
-                        } else {
-                            waitEl.textContent = '~' + data.estimatedWaitMinutes + 'm';
-                            waitEl.style.color = '';  // Reset color
-                        }
+                    if (waitEl && ticketId) {
+                        const estimatedMinutes = data.estimatedWaitMinutes;
+                        
+                        // Start countdown timer
+                        startCountdown(ticketId, estimatedMinutes);
                     }
                 })
                 .catch(error => {

@@ -60,6 +60,11 @@
         <p class="page-subtitle">Manage your queue management system</p>
 
         <div class="dashboard-grid">
+            <a href="<%=request.getContextPath()%>/admin/ManageUsersServlet" class="action-card">
+                <h3>Manage Users</h3>
+                <p>View all users and change roles</p>
+            </a>
+
             <a href="<%=request.getContextPath()%>/admin/ManageAgenciesServlet" class="action-card">
                 <h3>Manage Agencies</h3>
                 <p>Add, edit, or remove agencies</p>

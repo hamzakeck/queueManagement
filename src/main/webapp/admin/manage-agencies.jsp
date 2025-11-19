@@ -37,6 +37,9 @@
     .btn-secondary:hover { background: #545b62; }
     .btn-danger { background: #dc3545; color: white; }
     .btn-danger:hover { background: #c82333; }
+    .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+    .btn-info { background: #17a2b8; color: white; }
+    .btn-info:hover { background: #117a8b; }
     .alert { padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
     .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
     .alert-danger { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
@@ -128,7 +131,7 @@
                     <td><%=agency.getCity()%></td>
                     <td><%=agency.isActive() ? "Yes" : "No"%></td>
                     <td>
-                        <button onclick="editAgency(<%=agency.getId()%>, '<%=agency.getName()%>', '<%=agency.getAddress()%>', '<%=agency.getCity()%>', <%=agency.isActive()%>)" class="btn btn-sm">Edit</button>
+                        <button type="button" onclick="editAgency(<%=agency.getId()%>, '<%=agency.getName()%>', '<%=agency.getAddress()%>', '<%=agency.getCity()%>', <%=agency.isActive()%>)" class="btn btn-sm btn-info">Edit</button>
                         <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure?');">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<%=agency.getId()%>">
