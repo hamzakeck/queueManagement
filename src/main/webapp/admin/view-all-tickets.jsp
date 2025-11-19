@@ -14,115 +14,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<<<<<<< HEAD
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Tickets</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-        }
-        header {
-            background: #fff;
-            border-bottom: 1px solid #e9ecef;
-            padding: 1rem 0;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-        }
-        .nav-link {
-            color: #666;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-        .nav-link:hover {
-            background-color: #f8f9fa;
-        }
-        main {
-            padding: 2rem 0;
-        }
-        .dashboard-header {
-            margin-bottom: 2rem;
-        }
-        h1 {
-            font-size: 2rem;
-            font-weight: 600;
-        }
-        .alert {
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1.5rem;
-        }
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .data-table {
-            width: 100%;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .data-table thead {
-            background: #f8f9fa;
-        }
-        .data-table th,
-        .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .data-table th {
-            font-weight: 600;
-            color: #495057;
-        }
-        .data-table tbody tr:hover {
-            background: #f8f9fa;
-        }
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: 500;
-        }
-        .badge-waiting { background: #fff3cd; color: #856404; }
-        .badge-called { background: #d1ecf1; color: #0c5460; }
-        .badge-in_progress { background: #cce5ff; color: #004085; }
-        .badge-completed { background: #d4edda; color: #155724; }
-        .badge-cancelled { background: #f8d7da; color: #721c24; }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">All Tickets</div>
-                <a href="<%=request.getContextPath()%>/admin/index.jsp" class="nav-link">← Back to Dashboard</a>
-            </div>
-=======
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>All Tickets</title>
@@ -165,7 +56,6 @@
             <form action="<%= request.getContextPath() %>/LogoutServlet" method="POST" style="margin: 0;">
                 <button type="submit" class="logout-btn">Logout</button>
             </form>
->>>>>>> 92e8e02bba67ed8989d3c6f914288999ed303c63
         </div>
     </div>
 
@@ -224,24 +114,6 @@
                 <% } %>
             </tbody>
         </table>
-<<<<<<< HEAD
-    </main>
-=======
     </div>
-
-    <style>
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: 500;
-        }
-        .badge-waiting { background: #fff3cd; color: #856404; }
-        .badge-called { background: #d1ecf1; color: #0c5460; }
-        .badge-in_progress { background: #cce5ff; color: #004085; }
-        .badge-completed { background: #d4edda; color: #155724; }
-        .badge-cancelled { background: #f8d7da; color: #721c24; }
-    </style>
->>>>>>> 92e8e02bba67ed8989d3c6f914288999ed303c63
 </body>
 </html>

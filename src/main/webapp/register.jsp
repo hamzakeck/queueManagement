@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Queue Management System - Register</title>
+<title>Register - Queue Management</title>
 <style>
     * {
         margin: 0;
@@ -14,47 +14,51 @@
     }
 
     body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: #f8f9fa;
         min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
     }
 
     .register-container {
         max-width: 500px;
-        margin: 30px auto;
+        width: 100%;
         background: white;
-        padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 2.5rem;
     }
 
     .register-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 2rem;
     }
 
     .register-header h1 {
-        color: #667eea;
-        margin-bottom: 10px;
-        font-size: 28px;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
     }
 
     .register-header p {
-        color: #999;
-        font-size: 14px;
+        color: #6c757d;
+        font-size: 0.875rem;
     }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 1.25rem;
     }
 
     label {
         display: block;
-        margin-bottom: 8px;
-        color: #333;
-        font-weight: 600;
-        font-size: 14px;
+        margin-bottom: 0.5rem;
+        color: #212529;
+        font-weight: 500;
+        font-size: 0.875rem;
     }
 
     select,
@@ -63,76 +67,89 @@
     input[type="password"],
     input[type="number"] {
         width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 14px;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
         font-family: inherit;
-        transition: border-color 0.3s;
+        transition: border-color 0.2s;
     }
 
     select:focus,
     input:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #495057;
     }
 
     .hidden-field {
         display: none;
     }
 
-    .button-group {
-        display: flex;
-        gap: 10px;
-        margin-top: 30px;
-    }
-
-    .register-btn,
-    .login-link-btn {
-        flex: 1;
-        padding: 12px;
-        border: none;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
     .register-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        width: 100%;
+        padding: 0.75rem;
+        background: #212529;
         color: white;
+        border: none;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 0.5rem;
     }
 
     .register-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .login-link-btn {
-        background: white;
-        color: #667eea;
-        border: 2px solid #667eea;
-    }
-
-    .login-link-btn:hover {
-        background: #f5f7fa;
+        background: #000;
     }
 
     .validation-error {
-        color: #e74c3c;
-        font-size: 12px;
-        margin-top: 5px;
+        color: #842029;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        color: #842029;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #f5c2c7;
     }
 
     .success-message {
-        background: #d4edda;
-        color: #155724;
-        padding: 12px;
-        border-radius: 5px;
-        margin-bottom: 20px;
+        background: #d1e7dd;
+        color: #0f5132;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #badbcc;
         display: none;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .login-link p {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .login-link a {
+        color: #212529;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .login-link a:hover {
+        text-decoration: underline;
     }
 </style>
 </head>
@@ -207,13 +224,12 @@
                 <div class="validation-error" id="confirmPasswordError"></div>
             </div>
 
-            <div class="button-group">
-                <button type="submit" class="register-btn">Register</button>
-                <a href="${pageContext.request.contextPath}/login.jsp" style="flex: 1; text-decoration: none;">
-                    <button type="button" class="login-link-btn" style="width: 100%;">Back to Login</button>
-                </a>
-            </div>
+            <button type="submit" class="register-btn">Register</button>
         </form>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="<%= request.getContextPath() %>/login.jsp">Sign in here</a></p>
+        </div>
     </div>
 
     <script>

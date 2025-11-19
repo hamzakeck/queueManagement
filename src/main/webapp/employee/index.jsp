@@ -29,76 +29,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Employee Counter</title>
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-        background: #f8f9fa;
-        color: #212529;
-        line-height: 1.6;
-    }
-
-    .header {
-        background: #fff;
-        border-bottom: 1px solid #e9ecef;
-        padding: 1rem 2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .header h1 {
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
-
-    .user-section {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    .user-info {
-        text-align: right;
-        font-size: 0.875rem;
-        color: #6c757d;
-    }
-
-    .logout-btn {
-        background: transparent;
-        border: 1px solid #dee2e6;
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        font-size: 0.875rem;
-        color: #495057;
-        transition: all 0.2s;
-    }
-
-    .logout-btn:hover {
-        background: #f8f9fa;
-        border-color: #adb5bd;
-    }
-
-    .container {
-        max-width: 1000px;
-        margin: 2rem auto;
-        padding: 0 1.5rem;
-    }
-
-    .alert {
-        padding: 1rem;
-        border-radius: 0.375rem;
-        margin-bottom: 1.5rem;
-        font-size: 0.875rem;
-    }
-
-    .alert-success {
-        background: #d1e7dd;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.6; }
+    .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
+    .user-section { display: flex; align-items: center; gap: 1.5rem; }
+    .user-info { text-align: right; }
+    .user-info .email { font-size: 0.875rem; color: #6c757d; }
+    .user-info .role { font-size: 0.75rem; font-weight: 500; color: #fff; background: #28a745; padding: 0.125rem 0.5rem; border-radius: 0.25rem; display: inline-block; margin-top: 0.25rem; }
+    .logout-btn { background: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background 0.2s; }
+    .logout-btn:hover { background: #218838; }
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+    .alert { padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
+    .alert-success { background: #d1e7dd;
         color: #0f5132;
         border: 1px solid #badbcc;
     }
@@ -129,117 +72,27 @@
         color: #6c757d;
     }
 
-    .ticket-display {
-        text-align: center;
-        padding: 2rem;
-        background: #f8f9fa;
-        border-radius: 0.375rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .ticket-number-large {
-        font-size: 3rem;
-        font-weight: 700;
-        font-family: 'Courier New', monospace;
-        color: #212529;
-        margin-bottom: 0.5rem;
-    }
-
-    .ticket-service {
-        font-size: 1rem;
-        color: #6c757d;
-        margin-bottom: 1.5rem;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-    }
-
-    .btn {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 0.25rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-primary {
-        background: #212529;
-        color: #fff;
-    }
-
-    .btn-primary:hover {
-        background: #000;
-    }
-
-    .btn-success {
-        background: #198754;
-        color: #fff;
-    }
-
-    .btn-success:hover {
-        background: #146c43;
-    }
-
-    .queue-section {
-        background: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 0.5rem;
-        padding: 2rem;
-    }
-
-    .queue-section h2 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .queue-count {
-        font-size: 0.875rem;
-        color: #6c757d;
-        margin-bottom: 1.5rem;
-    }
-
-    .queue-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .queue-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem;
-        background: #f8f9fa;
-        border-radius: 0.375rem;
-        border: 1px solid #e9ecef;
-    }
-
-    .queue-item-number {
-        font-size: 1.125rem;
-        font-weight: 600;
-        font-family: 'Courier New', monospace;
-    }
-
-    .queue-item-info {
-        font-size: 0.875rem;
-        color: #6c757d;
-    }
-
-    @media (max-width: 768px) {
-        .action-buttons {
-            flex-direction: column;
-        }
-
-        .btn {
-            width: 100%;
-        }
-    }
+    .ticket-display { text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 0.375rem; margin-bottom: 1.5rem; }
+    .ticket-number-large { font-size: 3rem; font-weight: 700; font-family: 'Courier New', monospace; color: #212529; margin-bottom: 0.5rem; }
+    .ticket-service { font-size: 1rem; color: #6c757d; margin-bottom: 1.5rem; }
+    .action-buttons { display: flex; gap: 1rem; justify-content: center; }
+    .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+    .btn-primary { background: #28a745; color: #fff; }
+    .btn-primary:hover { background: #218838; }
+    .btn-success { background: #198754; color: #fff; }
+    .btn-success:hover { background: #146c43; }
+    .btn-secondary { background: #6c757d; color: #fff; }
+    .btn-secondary:hover { background: #545b62; }
+    .queue-section { background: #fff; border: 1px solid #e9ecef; border-radius: 0.5rem; padding: 2rem; }
+    .queue-section h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .queue-count { font-size: 0.875rem; color: #6c757d; margin-bottom: 1.5rem; }
+    .queue-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 0.375rem; border: 1px solid #e9ecef; }
+    .queue-item-number { font-size: 1.125rem; font-weight: 600; font-family: 'Courier New', monospace; }
+    .queue-item-info { font-size: 0.875rem; color: #6c757d; }
+    .history-link { display: block; text-align: center; margin-top: 1rem; color: #28a745; text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+    .history-link:hover { text-decoration: underline; }
+    @media (max-width: 768px) { .action-buttons { flex-direction: column; } .btn { width: 100%; } }
 </style>
 </head>
 <body>
