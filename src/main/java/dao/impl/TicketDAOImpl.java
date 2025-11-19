@@ -1,10 +1,8 @@
 package dao.impl;
 
-import dao.TicketDAO;
 import dao.DAOException;
+import dao.TicketDAO;
 import dao.factory.DatabaseFactory;
-import models.Ticket;
-
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import models.Ticket;
 
 /**
  * JDBC Implementation of TicketDAO (Most complex DAO with queue management
@@ -301,19 +300,27 @@ public class TicketDAOImpl implements TicketDAO {
         // Get service letter (A-Z based on service ID)
         String serviceLetter = String.valueOf((char) ('A' + ((serviceId - 1) % 26)));
 
-        // Get today's count for this service at this agency
-        String sql = "SELECT COUNT(*) FROM tickets WHERE agency_id = ? AND service_id = ? AND DATE(created_at) = CURDATE()";
+        // Find the highest ticket number for this service today and increment
+        // Using MAX to avoid race conditions with COUNT
+        String sql = "SELECT ticket_number FROM tickets " +
+                     "WHERE agency_id = ? AND service_id = ? AND DATE(created_at) = CURDATE() " +
+                     "AND ticket_number LIKE ? " +
+                     "ORDER BY ticket_number DESC LIMIT 1 FOR UPDATE";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, agencyId);
             pstmt.setInt(2, serviceId);
+            pstmt.setString(3, serviceLetter + "%");
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    int count = rs.getInt(1) + 1;
-                    return serviceLetter + String.format("%03d", count);
+                    String lastTicket = rs.getString("ticket_number");
+                    // Extract number part and increment
+                    String numberPart = lastTicket.substring(1); // Remove letter
+                    int number = Integer.parseInt(numberPart) + 1;
+                    return serviceLetter + String.format("%03d", number);
                 }
                 return serviceLetter + "001";
             }

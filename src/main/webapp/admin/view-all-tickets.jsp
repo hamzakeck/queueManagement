@@ -27,6 +27,9 @@
     .user-info .role { font-size: 0.75rem; font-weight: 500; color: #fff; background: #dc3545; padding: 0.125rem 0.5rem; border-radius: 0.25rem; display: inline-block; margin-top: 0.25rem; }
     .logout-btn { background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background 0.2s; }
     .logout-btn:hover { background: #c82333; }
+    .back-btn { background: transparent; border: 1px solid #dee2e6; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; color: #495057; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .back-btn:hover { background: #f8f9fa; border-color: #adb5bd; }
+    .header-left { display: flex; align-items: center; gap: 1rem; }
     .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
     .page-header h2 { font-size: 1.5rem; font-weight: 600; color: #212529; }
@@ -46,7 +49,10 @@
 </head>
 <body>
     <div class="header">
-        <h1>All Tickets</h1>
+        <div class="header-left">
+            <a href="<%= request.getContextPath() %>/admin/index.jsp" class="back-btn">← Dashboard</a>
+            <h1>All Tickets</h1>
+        </div>
         <div class="user-section">
             <div class="user-info">
                 <div class="email"><%=userEmail%></div>
