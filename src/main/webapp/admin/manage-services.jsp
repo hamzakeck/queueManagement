@@ -20,12 +20,15 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.6; }
     .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+    .header-left h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
     .user-section { display: flex; align-items: center; gap: 1.5rem; }
     .user-info { text-align: right; }
     .user-info .email { font-size: 0.875rem; color: #6c757d; }
     .user-info .role { font-size: 0.75rem; font-weight: 500; color: #fff; background: #dc3545; padding: 0.125rem 0.5rem; border-radius: 0.25rem; display: inline-block; margin-top: 0.25rem; }
     .logout-btn { background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background 0.2s; }
+    .back-btn { background: #6c757d; color: #fff; text-decoration: none; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; display: inline-block; transition: background 0.2s; }
+    .back-btn:hover { background: #545b62; }
     .logout-btn:hover { background: #c82333; }
     .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
@@ -56,7 +59,10 @@
 </head>
 <body>
     <div class="header">
-        <h1>Manage Services</h1>
+        <div class="header-left">
+            <h1>Manage Services</h1>
+            <a href="<%= request.getContextPath() %>/admin/index.jsp" class="back-btn">← Dashboard</a>
+        </div>
         <div class="user-section">
             <div class="user-info">
                 <div class="email"><%=userEmail%></div>
@@ -129,7 +135,13 @@
                     <td><%=service.getEstimatedTime()%></td>
                     <td><%=service.isActive() ? "Yes" : "No"%></td>
                     <td>
-                        <button onclick="editService(<%=service.getId()%>, '<%=service.getName().replace("'", "\\'")%>', '<%=service.getDescription().replace("'", "\\'")%>', <%=service.getEstimatedTime()%>, <%=service.isActive()%>)" class="btn btn-sm">Edit</button>
+                        <button class="btn btn-sm edit-btn" 
+                            data-id="<%=service.getId()%>" 
+                            data-name="<%=service.getName()%>" 
+                            data-description="<%=service.getDescription()%>" 
+                            data-estimated="<%=service.getEstimatedTime()%>" 
+                            data-active="<%=service.isActive()%>"
+                            onclick="editServiceFromDataset(this)">Edit</button>
                         <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure?');">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<%=service.getId()%>">
@@ -185,6 +197,15 @@
             document.getElementById('editActive').checked = active;
             document.getElementById('editFormModal').style.display = 'block';
             document.getElementById('modalOverlay').style.display = 'block';
+        }
+        function editServiceFromDataset(el) {
+            editService(
+                el.dataset.id,
+                el.dataset.name,
+                el.dataset.description,
+                el.dataset.estimated,
+                el.dataset.active === 'true'
+            );
         }
         function hideEditForm() {
             document.getElementById('editFormModal').style.display = 'none';
