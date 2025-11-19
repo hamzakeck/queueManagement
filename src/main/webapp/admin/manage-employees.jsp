@@ -1,9 +1,19 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="models.Employee, models.Agency, models.Service" %>
+<%
+    String userEmail = (String) session.getAttribute("userEmail");
+    String userRole = (String) session.getAttribute("userRole");
+    
+    if (userEmail == null || !"admin".equals(userRole)) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+%>
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
+<<<<<<< HEAD
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Employees</title>
@@ -166,12 +176,65 @@
                 <div class="logo">Manage Employees</div>
                 <a href="<%=request.getContextPath()%>/admin/index.jsp" class="nav-link">← Back to Dashboard</a>
             </div>
+=======
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Employees</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.6; }
+    .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
+    .user-section { display: flex; align-items: center; gap: 1.5rem; }
+    .user-info { text-align: right; }
+    .user-info .email { font-size: 0.875rem; color: #6c757d; }
+    .user-info .role { font-size: 0.75rem; font-weight: 500; color: #fff; background: #dc3545; padding: 0.125rem 0.5rem; border-radius: 0.25rem; display: inline-block; margin-top: 0.25rem; }
+    .logout-btn { background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background 0.2s; }
+    .logout-btn:hover { background: #c82333; }
+    .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .page-header h2 { font-size: 1.5rem; font-weight: 600; color: #212529; }
+    .btn { padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-secondary { background: #6c757d; color: white; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-danger:hover { background: #c82333; }
+    .alert { padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
+    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .alert-danger { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; color: #495057; }
+    .form-control { width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 0.375rem; font-size: 0.875rem; }
+    .data-table { width: 100%; background: #fff; border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .data-table thead { background: #f8f9fa; }
+    .data-table th { padding: 1rem; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6; }
+    .data-table td { padding: 1rem; border-bottom: 1px solid #dee2e6; }
+    .data-table tbody tr:hover { background: #f8f9fa; }
+    .badge { padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500; }
+    .badge-active { background: #d4edda; color: #155724; }
+    .badge-inactive { background: #f8d7da; color: #721c24; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>Manage Employees</h1>
+        <div class="user-section">
+            <div class="user-info">
+                <div class="email"><%=userEmail%></div>
+                <div class="role">Admin</div>
+            </div>
+            <form action="<%= request.getContextPath() %>/LogoutServlet" method="POST" style="margin: 0;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+>>>>>>> 92e8e02bba67ed8989d3c6f914288999ed303c63
         </div>
-    </header>
+    </div>
 
-    <main class="container">
-        <div class="dashboard-header">
-            <h1>Manage Employees</h1>
+    <div class="container">
+        <div class="page-header">
+            <h2>Manage Employees</h2>
             <button onclick="showAddForm()" class="btn btn-primary">Add New Employee</button>
         </div>
 
@@ -325,7 +388,7 @@
             </form>
         </div>
         <div id="modalOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="hideEditForm()"></div>
-    </main>
+    </div>
 
     <script>
         function showAddForm() {
