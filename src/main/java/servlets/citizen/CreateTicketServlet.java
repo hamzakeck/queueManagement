@@ -60,6 +60,7 @@ public class CreateTicketServlet extends HttpServlet {
             ticket.setCitizenId(citizenId);
             ticket.setAgencyId(agencyId);
             ticket.setServiceId(serviceId);
+            ticket.setStatus("WAITING");
 
             // Generate ticket number and get position
             String ticketNumber = ticketDAO.generateTicketNumber(agencyId, serviceId);
