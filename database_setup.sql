@@ -107,6 +107,7 @@ CREATE TABLE tickets (
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB;
 
+ALTER TABLE tickets MODIFY COLUMN status ENUM('WAITING', 'CALLED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'WAITING';
 -- ========================================
 -- Insert Sample Data
 -- ========================================
@@ -148,44 +149,3 @@ INSERT INTO tickets (ticket_number, citizen_id, service_id, agency_id, status, p
 ('A002', 2, 2, 1, 'WAITING', 2),
 ('B001', 3, 3, 2, 'WAITING', 1);
 
--- ========================================
--- Useful Queries for Development
--- ========================================
-
--- Get all waiting tickets for an agency
--- SELECT * FROM tickets WHERE agency_id = 1 AND status = 'WAITING' ORDER BY position;
-
--- Get citizen's active ticket
--- SELECT t.*, s.name as service_name, a.name as agency_name 
--- FROM tickets t 
--- JOIN services s ON t.service_id = s.id 
--- JOIN agencies a ON t.agency_id = a.id 
--- WHERE t.citizen_id = 1 AND t.status IN ('WAITING', 'CALLED', 'IN_PROGRESS');
-
--- Get employee's assigned tickets
--- SELECT * FROM tickets WHERE counter_id = 1 AND status = 'IN_PROGRESS';
-
--- Get daily statistics
--- SELECT 
---     DATE(created_at) as date,
---     COUNT(*) as total_tickets,
---     SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) as completed,
---     SUM(CASE WHEN status = 'CANCELLED' THEN 1 ELSE 0 END) as cancelled
--- FROM tickets 
--- GROUP BY DATE(created_at);
-
--- ========================================
--- Test Credentials Summary
--- ========================================
--- ADMIN:
---   Email: admin@queue.com
---   Password: admin123
---
--- EMPLOYEE:
---   Email: ahmed.tazi@queue.com
---   Password: employee123
---
--- CITIZEN:
---   Email: mohammed@email.com
---   Password: citizen123
--- ========================================

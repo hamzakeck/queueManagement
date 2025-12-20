@@ -371,10 +371,21 @@
                 ws.onmessage = function(event) {
                     try {
                         const data = JSON.parse(event.data);
-                        if (data.action === 'queueUpdate') {
+                        
+                        // Handle wait time updates
+                        if (data.action === 'waitTimeUpdate') {
+                            data.tickets.forEach(ticketData => {
+                                updateTicketWaitTime(ticketData);
+                            });
+                        }
+                        // Handle general queue updates
+                        else if (data.action === 'queueUpdate') {
                             updateAllWaitTimes();
                         }
-                        updateTicketStatus(data);
+                        // Handle individual ticket status updates
+                        else {
+                            updateTicketStatus(data);
+                        }
                     } catch (e) {
                         console.error('Error:', e);
                     }
@@ -395,8 +406,49 @@
                 clearInterval(countdownTimers[ticketId]);
             }
             
-            // Store time in seconds for smooth countdown
-            waitTimes[ticketId] = initialMinutes * 60;
+            // Validate input - don't start countdown if data is invalid
+            if (initialMinutes === undefined || initialMinutes === null || isNaN(initialMinutes) || initialMinutes < 0) {
+                console.warn('Invalid initial minutes for ticket ' + ticketId + ':', initialMinutes);
+                return;
+            }
+            
+            // Check if we have a stored start time for this ticket
+            const storageKey = 'ticket_' + ticketId + '_countdown';
+            let countdownData = localStorage.getItem(storageKey);
+            
+            if (countdownData) {
+                // Parse stored data
+                countdownData = JSON.parse(countdownData);
+                const startTime = countdownData.startTime;
+                const initialSeconds = countdownData.initialSeconds;
+                
+                // Calculate elapsed time since start
+                const now = Date.now();
+                const elapsedSeconds = Math.floor((now - startTime) / 1000);
+                const remainingSeconds = Math.max(0, initialSeconds - elapsedSeconds);
+                
+                // Check if the new estimate is significantly different (more than 30 seconds)
+                const newTotalSeconds = initialMinutes * 60;
+                if (Math.abs(newTotalSeconds - initialSeconds) > 30) {
+                    // New estimate from server, restart countdown
+                    waitTimes[ticketId] = newTotalSeconds;
+                    localStorage.setItem(storageKey, JSON.stringify({
+                        startTime: Date.now(),
+                        initialSeconds: newTotalSeconds
+                    }));
+                } else {
+                    // Continue with remaining time
+                    waitTimes[ticketId] = remainingSeconds;
+                }
+            } else {
+                // First time, store the start time
+                const totalSeconds = initialMinutes * 60;
+                waitTimes[ticketId] = totalSeconds;
+                localStorage.setItem(storageKey, JSON.stringify({
+                    startTime: Date.now(),
+                    initialSeconds: totalSeconds
+                }));
+            }
             
             // Update display immediately
             updateCountdownDisplay(ticketId);
@@ -415,6 +467,14 @@
             const waitEl = document.getElementById('wait-' + ticketId);
             if (waitEl) {
                 const totalSeconds = waitTimes[ticketId];
+                
+                // Check if we have valid data
+                if (totalSeconds === undefined || totalSeconds === null) {
+                    waitEl.textContent = '--';
+                    waitEl.style.color = '#6c757d';
+                    return;
+                }
+                
                 if (totalSeconds === 0) {
                     waitEl.textContent = 'Next!';
                     waitEl.style.color = '#198754';  // Green color
@@ -423,10 +483,14 @@
                         clearInterval(countdownTimers[ticketId]);
                         delete countdownTimers[ticketId];
                     }
+                    // Clear from localStorage
+                    localStorage.removeItem('ticket_' + ticketId + '_countdown');
                 } else {
                     const minutes = Math.floor(totalSeconds / 60);
                     const seconds = totalSeconds % 60;
-                    waitEl.textContent = '~' + minutes + 'm ' + seconds + 's';
+                    // Pad seconds with leading zero
+                    const paddedSeconds = seconds < 10 ? '0' + seconds : seconds;
+                    waitEl.textContent = '~' + minutes + 'm ' + paddedSeconds + 's';
                     waitEl.style.color = '';  // Reset color
                 }
             }
@@ -439,6 +503,8 @@
                 delete countdownTimers[ticketId];
                 delete waitTimes[ticketId];
             }
+            // Clear from localStorage
+            localStorage.removeItem('ticket_' + ticketId + '_countdown');
         }
         
         // Update the ticket display when we get new data
@@ -506,6 +572,36 @@
             
             // Insert at the beginning of the card
             card.insertBefore(alertDiv, card.firstChild);
+        }
+        
+        // Update wait time for a specific ticket from WebSocket data
+        function updateTicketWaitTime(ticketData) {
+            const ticketCards = document.querySelectorAll('.ticket-card');
+            
+            ticketCards.forEach(card => {
+                const ticketNumber = card.querySelector('.ticket-number').textContent.trim();
+                
+                if (ticketData.ticketNumber === ticketNumber) {
+                    const ticketId = card.getAttribute('data-ticket-id');
+                    
+                    // Update position
+                    const positionEl = document.getElementById('position-' + ticketId);
+                    if (positionEl) {
+                        positionEl.textContent = ticketData.position;
+                    }
+                    
+                    // Update queue count
+                    const queueEl = document.getElementById('queue-' + ticketId);
+                    if (queueEl) {
+                        queueEl.textContent = (ticketData.position + 1);
+                    }
+                    
+                    // Start countdown with new time
+                    if (ticketId) {
+                        startCountdown(ticketId, ticketData.estimatedWaitMinutes);
+                    }
+                }
+            });
         }
         
         // Update wait times for all WAITING tickets

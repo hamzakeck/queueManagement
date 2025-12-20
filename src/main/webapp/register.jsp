@@ -167,12 +167,12 @@
 
             <div class="form-group">
                 <label for="firstName">First Name:</label>
-                <input type="text" id="firstName" name="firstName" required placeholder="John">
+                <input type="text" id="firstName" name="firstName" required placeholder="Ahmed">
             </div>
 
             <div class="form-group">
                 <label for="lastName">Last Name:</label>
-                <input type="text" id="lastName" name="lastName" required placeholder="Doe">
+                <input type="text" id="lastName" name="lastName" required placeholder="Ahmadi">
             </div>
 
             <div class="form-group">
@@ -222,7 +222,7 @@
                 return false;
             }
 
-            // Check if passwords match
+            // if passwords match
             if (password !== confirmPassword) {
                 confirmPasswordError.textContent = 'Passwords do not match';
                 return false;

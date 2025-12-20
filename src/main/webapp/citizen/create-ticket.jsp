@@ -23,8 +23,17 @@
     List<Agency> agencies = agencyDAO.findAll();
     List<Service> services = serviceDAO.findAllActive();
     
-    String error = request.getParameter("error");
-    String success = request.getParameter("success");
+    // Get error and success messages from session
+    String errorMessage = (String) session.getAttribute("errorMessage");
+    String successMessage = (String) session.getAttribute("successMessage");
+    
+    // Clear messages after retrieval
+    if (errorMessage != null) {
+        session.removeAttribute("errorMessage");
+    }
+    if (successMessage != null) {
+        session.removeAttribute("successMessage");
+    }
 %>
 <!DOCTYPE html>
 <html>
@@ -202,15 +211,15 @@
             <h2>Request a Service Ticket</h2>
             <p>Select an agency and service to get your ticket number</p>
 
-            <% if (error != null) { %>
+            <% if (errorMessage != null) { %>
                 <div class="alert alert-error">
-                    <%= error %>
+                    <%= errorMessage %>
                 </div>
             <% } %>
 
-            <% if (success != null) { %>
+            <% if (successMessage != null) { %>
                 <div class="alert alert-success">
-                    <%= success %>
+                    <%= successMessage %>
                 </div>
             <% } %>
 
