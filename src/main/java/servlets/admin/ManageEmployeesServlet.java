@@ -34,8 +34,8 @@ public class ManageEmployeesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminId") == null) {
-            response.sendRedirect(request.getContextPath() + "/admin/AdminLoginServlet");
+        if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
@@ -59,36 +59,15 @@ public class ManageEmployeesServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminId") == null) {
-            response.sendRedirect(request.getContextPath() + "/admin/AdminLoginServlet");
+        if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
             return;
         }
 
         String action = request.getParameter("action");
 
         try {
-            if ("add".equals(action)) {
-                String firstName = request.getParameter("firstName");
-                String lastName = request.getParameter("lastName");
-                String email = request.getParameter("email");
-                String password = request.getParameter("password");
-                int agencyId = Integer.parseInt(request.getParameter("agencyId"));
-                int serviceId = Integer.parseInt(request.getParameter("serviceId"));
-                int counterId = Integer.parseInt(request.getParameter("counterId"));
-
-                Employee employee = new Employee();
-                employee.setFirstName(firstName);
-                employee.setLastName(lastName);
-                employee.setEmail(email);
-                employee.setPassword(password);
-                employee.setAgencyId(agencyId);
-                employee.setServiceId(serviceId);
-                employee.setCounterId(counterId);
-
-                employeeDAO.save(employee);
-                response.sendRedirect(request.getContextPath() + "/admin/ManageEmployeesServlet?success=added");
-
-            } else if ("edit".equals(action)) {
+            if ("edit".equals(action)) {
                 int id = Integer.parseInt(request.getParameter("id"));
                 String firstName = request.getParameter("firstName");
                 String lastName = request.getParameter("lastName");

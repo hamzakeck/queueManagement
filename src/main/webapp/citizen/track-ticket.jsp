@@ -1,7 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
 <%@ page import="models.Ticket" %>
+<%@ page import="models.Service" %>
+<%@ page import="models.Agency" %>
 <%@ page import="dao.TicketDAO" %>
+<%@ page import="dao.ServiceDAO" %>
+<%@ page import="dao.AgencyDAO" %>
 <%@ page import="dao.DAOFactory" %>
 <%
     String userEmail = (String) session.getAttribute("userEmail");
@@ -14,7 +20,22 @@
     }
 
     TicketDAO ticketDAO = DAOFactory.getInstance().getTicketDAO();
+    ServiceDAO serviceDAO = DAOFactory.getInstance().getServiceDAO();
+    AgencyDAO agencyDAO = DAOFactory.getInstance().getAgencyDAO();
+    
     List<Ticket> myTickets = ticketDAO.findByCitizenId(citizenId);
+    
+    // Load service and agency names
+    Map<Integer, String> serviceNames = new HashMap<>();
+    Map<Integer, String> agencyNames = new HashMap<>();
+    
+    for (Service service : serviceDAO.findAll()) {
+        serviceNames.put(service.getId(), service.getName());
+    }
+    
+    for (Agency agency : agencyDAO.findAll()) {
+        agencyNames.put(agency.getId(), agency.getName());
+    }
 %>
 <!DOCTYPE html>
 <html>
@@ -81,33 +102,6 @@
         font-size: 0.875rem;
     }
 
-    .connection-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0.75rem;
-        background: #e9ecef;
-        border-radius: 0.25rem;
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
-    }
-
-    .connection-status.connected {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #6c757d;
-    }
-
-    .status-dot.connected {
-        background: #198754;
-    }
-
     .tickets-list {
         display: flex;
         flex-direction: column;
@@ -149,9 +143,39 @@
     }
 
     .status-waiting { background: #fff3cd; color: #997404; }
+    .status-called { background: #0dcaf0; color: #055160; font-weight: 700; animation: pulse 2s infinite; }
     .status-in_progress { background: #d1e7dd; color: #0f5132; }
     .status-completed { background: #e9ecef; color: #495057; }
     .status-cancelled { background: #f8d7da; color: #842029; }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .counter-alert {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 600;
+        animation: slideDown 0.5s ease-out;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .counter-alert .counter-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+    }
 
     .ticket-info {
         display: grid;
@@ -267,11 +291,7 @@
     <div class="container">
         <div class="page-title">
             <h2>My Tickets</h2>
-            <p>Real-time updates via WebSocket</p>
-            <div id="connectionStatus" class="connection-status">
-                <span class="status-dot"></span>
-                <span>Connecting...</span>
-            </div>
+            <p>Track your queue position and status</p>
         </div>
 
         <% if (myTickets == null || myTickets.isEmpty()) { %>
@@ -288,6 +308,8 @@
                     if (ticketStatus == null || ticketStatus.isEmpty()) {
                         ticketStatus = "WAITING";
                     }
+                    String serviceName = serviceNames.getOrDefault(ticket.getServiceId(), "Unknown Service");
+                    String agencyName = agencyNames.getOrDefault(ticket.getAgencyId(), "Unknown Agency");
                 %>
                 <div class="ticket-card" data-ticket-id="<%= ticket.getId() %>">
                     <div class="ticket-header">
@@ -300,19 +322,15 @@
                     <div class="ticket-info">
                         <div class="info-item">
                             <span class="info-label">Service</span>
-                            <span class="info-value">Service #<%= ticket.getServiceId() %></span>
+                            <span class="info-value"><%= serviceName %></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Agency</span>
-                            <span class="info-value">Agency #<%= ticket.getAgencyId() %></span>
+                            <span class="info-value"><%= agencyName %></span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Created</span>
                             <span class="info-value"><%= ticket.getCreatedAt() != null ? ticket.getCreatedAt().toString().substring(0, 16).replace("T", " ") : "N/A" %></span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Ticket ID</span>
-                            <span class="info-value">#<%= ticket.getId() %></span>
                         </div>
                     </div>
 
@@ -339,14 +357,10 @@
     </div>
 
     <script>
-        // === WEBSOCKET: Real-time updates ===
-        // This connects to the server and listens for updates
-        // When an employee calls a ticket, everyone gets notified instantly!
+        let ws;
+        let countdownTimers = {}; // Store countdown intervals for each ticket
+        let waitTimes = {}; // Store current wait times in minutes
         
-        let ws;  // This will store our websocket connection
-        const statusEl = document.getElementById('connectionStatus');
-        
-        // Connect to the server
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = protocol + '//' + window.location.host + '<%= request.getContextPath() %>/queue-updates';
@@ -354,49 +368,143 @@
             try {
                 ws = new WebSocket(wsUrl);
                 
-                // When connected
-                ws.onopen = function() {
-                    console.log('Connected to server!');
-                    statusEl.className = 'connection-status connected';
-                    statusEl.querySelector('.status-dot').className = 'status-dot connected';
-                    statusEl.querySelector('span:last-child').textContent = 'Connected';
-                };
-                
-                // When we get a message from server
                 ws.onmessage = function(event) {
-                    console.log('Got update:', event.data);
                     try {
-                        const data = JSON.parse(event.data);  // Convert JSON string to object
+                        const data = JSON.parse(event.data);
                         
-                        // If queue changed, update wait times for all waiting tickets
-                        if (data.action === 'queueUpdate') {
+                        // Handle wait time updates
+                        if (data.action === 'waitTimeUpdate') {
+                            data.tickets.forEach(ticketData => {
+                                updateTicketWaitTime(ticketData);
+                            });
+                        }
+                        // Handle general queue updates
+                        else if (data.action === 'queueUpdate') {
                             updateAllWaitTimes();
                         }
-                        
-                        updateTicketStatus(data);  // Update the page
+                        // Handle individual ticket status updates
+                        else {
+                            updateTicketStatus(data);
+                        }
                     } catch (e) {
                         console.error('Error:', e);
                     }
                 };
                 
-                // When disconnected
                 ws.onclose = function() {
-                    console.log('Disconnected');
-                    statusEl.className = 'connection-status';
-                    statusEl.querySelector('.status-dot').className = 'status-dot';
-                    statusEl.querySelector('span:last-child').textContent = 'Disconnected';
-                    
-                    // Try to reconnect after 3 seconds
                     setTimeout(connectWebSocket, 3000);
                 };
-                
-                ws.onerror = function(error) {
-                    console.error('Connection error:', error);
-                };
             } catch (error) {
-                console.error('Failed to connect:', error);
-                statusEl.querySelector('span:last-child').textContent = 'Connection failed';
+                console.error('WebSocket failed:', error);
             }
+        }
+        
+        // Start countdown timer for a ticket
+        function startCountdown(ticketId, initialMinutes) {
+            // Clear existing timer if any
+            if (countdownTimers[ticketId]) {
+                clearInterval(countdownTimers[ticketId]);
+            }
+            
+            // Validate input - don't start countdown if data is invalid
+            if (initialMinutes === undefined || initialMinutes === null || isNaN(initialMinutes) || initialMinutes < 0) {
+                console.warn('Invalid initial minutes for ticket ' + ticketId + ':', initialMinutes);
+                return;
+            }
+            
+            // Check if we have a stored start time for this ticket
+            const storageKey = 'ticket_' + ticketId + '_countdown';
+            let countdownData = localStorage.getItem(storageKey);
+            
+            if (countdownData) {
+                // Parse stored data
+                countdownData = JSON.parse(countdownData);
+                const startTime = countdownData.startTime;
+                const initialSeconds = countdownData.initialSeconds;
+                
+                // Calculate elapsed time since start
+                const now = Date.now();
+                const elapsedSeconds = Math.floor((now - startTime) / 1000);
+                const remainingSeconds = Math.max(0, initialSeconds - elapsedSeconds);
+                
+                // Check if the new estimate is significantly different (more than 30 seconds)
+                const newTotalSeconds = initialMinutes * 60;
+                if (Math.abs(newTotalSeconds - initialSeconds) > 30) {
+                    // New estimate from server, restart countdown
+                    waitTimes[ticketId] = newTotalSeconds;
+                    localStorage.setItem(storageKey, JSON.stringify({
+                        startTime: Date.now(),
+                        initialSeconds: newTotalSeconds
+                    }));
+                } else {
+                    // Continue with remaining time
+                    waitTimes[ticketId] = remainingSeconds;
+                }
+            } else {
+                // First time, store the start time
+                const totalSeconds = initialMinutes * 60;
+                waitTimes[ticketId] = totalSeconds;
+                localStorage.setItem(storageKey, JSON.stringify({
+                    startTime: Date.now(),
+                    initialSeconds: totalSeconds
+                }));
+            }
+            
+            // Update display immediately
+            updateCountdownDisplay(ticketId);
+            
+            // Start interval to countdown every second
+            countdownTimers[ticketId] = setInterval(() => {
+                if (waitTimes[ticketId] > 0) {
+                    waitTimes[ticketId]--;
+                    updateCountdownDisplay(ticketId);
+                }
+            }, 1000); // 1000ms = 1 second
+        }
+        
+        // Update countdown display
+        function updateCountdownDisplay(ticketId) {
+            const waitEl = document.getElementById('wait-' + ticketId);
+            if (waitEl) {
+                const totalSeconds = waitTimes[ticketId];
+                
+                // Check if we have valid data
+                if (totalSeconds === undefined || totalSeconds === null) {
+                    waitEl.textContent = '--';
+                    waitEl.style.color = '#6c757d';
+                    return;
+                }
+                
+                if (totalSeconds === 0) {
+                    waitEl.textContent = 'Next!';
+                    waitEl.style.color = '#198754';  // Green color
+                    // Clear timer once we reach 0
+                    if (countdownTimers[ticketId]) {
+                        clearInterval(countdownTimers[ticketId]);
+                        delete countdownTimers[ticketId];
+                    }
+                    // Clear from localStorage
+                    localStorage.removeItem('ticket_' + ticketId + '_countdown');
+                } else {
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    // Pad seconds with leading zero
+                    const paddedSeconds = seconds < 10 ? '0' + seconds : seconds;
+                    waitEl.textContent = '~' + minutes + 'm ' + paddedSeconds + 's';
+                    waitEl.style.color = '';  // Reset color
+                }
+            }
+        }
+        
+        // Stop countdown for a ticket (when status changes)
+        function stopCountdown(ticketId) {
+            if (countdownTimers[ticketId]) {
+                clearInterval(countdownTimers[ticketId]);
+                delete countdownTimers[ticketId];
+                delete waitTimes[ticketId];
+            }
+            // Clear from localStorage
+            localStorage.removeItem('ticket_' + ticketId + '_countdown');
         }
         
         // Update the ticket display when we get new data
@@ -419,12 +527,78 @@
                         if (queueStats) {
                             queueStats.style.display = 'none';
                         }
+                        // Stop countdown when status changes from WAITING
+                        const ticketId = card.getAttribute('data-ticket-id');
+                        if (ticketId) {
+                            stopCountdown(ticketId);
+                        }
                     }
                     
-                    // Show notification if ticket is being served
-                    if (data.status === 'IN_PROGRESS') {
-                        showNotification('Your turn! Ticket ' + ticketNumber + ' is now being served');
+                    // Show notification when ticket is called or being served
+                    if (data.status === 'CALLED') {
+                        const counterInfo = data.counterId ? ' at Counter #' + data.counterId : '';
+                        showNotification('Your turn! Please proceed to the designated counter' + counterInfo);
                         playNotificationSound();
+                        
+                        // Add prominent counter alert to the card
+                        addCounterAlert(card, data.counterId);
+                    } else if (data.status === 'IN_PROGRESS') {
+                        const counterInfo = data.counterId ? ' at Counter #' + data.counterId : '';
+                        showNotification('Ticket ' + ticketNumber + ' is now being served' + counterInfo);
+                        playNotificationSound();
+                        
+                        // Add counter alert if not already present
+                        addCounterAlert(card, data.counterId);
+                    }
+                }
+            });
+        }
+        
+        // Add counter alert to ticket card
+        function addCounterAlert(card, counterId) {
+            // Check if alert already exists
+            if (card.querySelector('.counter-alert')) {
+                return;
+            }
+            
+            const counterNumber = counterId || 'N/A';
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'counter-alert';
+            alertDiv.innerHTML = `
+                <div>YOUR TURN</div>
+                <div class="counter-number">Counter #${counterNumber}</div>
+                <div>Please proceed to the designated counter</div>
+            `;
+            
+            // Insert at the beginning of the card
+            card.insertBefore(alertDiv, card.firstChild);
+        }
+        
+        // Update wait time for a specific ticket from WebSocket data
+        function updateTicketWaitTime(ticketData) {
+            const ticketCards = document.querySelectorAll('.ticket-card');
+            
+            ticketCards.forEach(card => {
+                const ticketNumber = card.querySelector('.ticket-number').textContent.trim();
+                
+                if (ticketData.ticketNumber === ticketNumber) {
+                    const ticketId = card.getAttribute('data-ticket-id');
+                    
+                    // Update position
+                    const positionEl = document.getElementById('position-' + ticketId);
+                    if (positionEl) {
+                        positionEl.textContent = ticketData.position;
+                    }
+                    
+                    // Update queue count
+                    const queueEl = document.getElementById('queue-' + ticketId);
+                    if (queueEl) {
+                        queueEl.textContent = (ticketData.position + 1);
+                    }
+                    
+                    // Start countdown with new time
+                    if (ticketId) {
+                        startCountdown(ticketId, ticketData.estimatedWaitMinutes);
                     }
                 }
             });
@@ -470,16 +644,13 @@
                         queueEl.textContent = (data.position + 1);
                     }
                     
-                    // Update estimated wait time
+                    // Update estimated wait time and start countdown
                     const waitEl = document.getElementById('wait-' + ticketId);
-                    if (waitEl) {
-                        if (data.estimatedWaitMinutes === 0) {
-                            waitEl.textContent = 'Next!';
-                            waitEl.style.color = '#198754';  // Green color
-                        } else {
-                            waitEl.textContent = '~' + data.estimatedWaitMinutes + 'm';
-                            waitEl.style.color = '';  // Reset color
-                        }
+                    if (waitEl && ticketId) {
+                        const estimatedMinutes = data.estimatedWaitMinutes;
+                        
+                        // Start countdown timer
+                        startCountdown(ticketId, estimatedMinutes);
                     }
                 })
                 .catch(error => {

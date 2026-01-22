@@ -277,8 +277,8 @@
                 </div>
                 <div class="info-item">
                     <div class="info-label">Estimated Wait</div>
-                    <div class="info-value large">
-                        <%= estimatedWait > 0 ? estimatedWait + " min" : "N/A" %>
+                    <div class="info-value large" id="wait-time">
+                        --
                     </div>
                 </div>
             </div>
@@ -320,14 +320,199 @@
     </div>
 
     <script>
-        // Auto-print option (uncomment if needed)
-        // window.onload = function() {
-        //     setTimeout(function() {
-        //         if (confirm('Would you like to print your ticket?')) {
-        //             window.print();
-        //         }
-        //     }, 500);
-        // };
+        let ws;
+        let countdownTimer = null;
+        let waitTimeSeconds = 0;
+        const ticketNumber = '<%= ticketNumber %>';
+        
+        // Connect to WebSocket for real-time updates
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = protocol + '//' + window.location.host + '<%= request.getContextPath() %>/queue-updates';
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        // Handle wait time updates
+                        if (data.action === 'waitTimeUpdate') {
+                            data.tickets.forEach(ticketData => {
+                                if (ticketData.ticketNumber === ticketNumber) {
+                                    updateWaitTime(ticketData.estimatedWaitMinutes);
+                                }
+                            });
+                        }
+                        // Handle general queue updates
+                        else if (data.action === 'queueUpdate') {
+                            fetchWaitTime();
+                        }
+                        // Handle ticket status change
+                        else if (data.ticketNumber === ticketNumber) {
+                            if (data.status === 'CALLED' || data.status === 'IN_PROGRESS') {
+                                showNotification('Your turn! Please proceed to the counter.');
+                                window.location.href = '<%= request.getContextPath() %>/citizen/track-ticket.jsp';
+                            }
+                        }
+                    } catch (e) {
+                        console.error('WebSocket error:', e);
+                    }
+                };
+                
+                ws.onclose = function() {
+                    setTimeout(connectWebSocket, 3000);
+                };
+            } catch (error) {
+                console.error('WebSocket connection failed:', error);
+            }
+        }
+        
+        // Start countdown timer
+        function startCountdown(initialMinutes) {
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+            
+            if (initialMinutes === undefined || initialMinutes === null || isNaN(initialMinutes) || initialMinutes < 0) {
+                console.warn('Invalid wait time:', initialMinutes);
+                return;
+            }
+            
+            // Check if we have a stored start time for this ticket
+            const storageKey = 'ticket_' + ticketNumber + '_countdown';
+            let countdownData = localStorage.getItem(storageKey);
+            
+            if (countdownData) {
+                // Parse stored data
+                countdownData = JSON.parse(countdownData);
+                const startTime = countdownData.startTime;
+                const initialSeconds = countdownData.initialSeconds;
+                
+                // Calculate elapsed time since start
+                const now = Date.now();
+                const elapsedSeconds = Math.floor((now - startTime) / 1000);
+                const remainingSeconds = Math.max(0, initialSeconds - elapsedSeconds);
+                
+                // Check if the new estimate is significantly different (more than 30 seconds)
+                const newTotalSeconds = initialMinutes * 60;
+                if (Math.abs(newTotalSeconds - initialSeconds) > 30) {
+                    // New estimate from server, restart countdown
+                    waitTimeSeconds = newTotalSeconds;
+                    localStorage.setItem(storageKey, JSON.stringify({
+                        startTime: Date.now(),
+                        initialSeconds: newTotalSeconds
+                    }));
+                } else {
+                    // Continue with remaining time
+                    waitTimeSeconds = remainingSeconds;
+                }
+            } else {
+                // First time, store the start time
+                const totalSeconds = initialMinutes * 60;
+                waitTimeSeconds = totalSeconds;
+                localStorage.setItem(storageKey, JSON.stringify({
+                    startTime: Date.now(),
+                    initialSeconds: totalSeconds
+                }));
+            }
+            updateCountdownDisplay();
+            
+            countdownTimer = setInterval(() => {
+                if (waitTimeSeconds > 0) {
+                    waitTimeSeconds--;
+                    updateCountdownDisplay();
+                }
+            }, 1000);
+        }
+        
+        // Update countdown display
+        function updateCountdownDisplay() {
+            const waitEl = document.getElementById('wait-time');
+            if (waitEl) {
+                if (waitTimeSeconds === undefined || waitTimeSeconds === null) {
+                    waitEl.textContent = '--';
+                    return;
+                }
+                
+                if (waitTimeSeconds === 0) {
+                    waitEl.textContent = 'Next!';
+                    waitEl.style.color = '#4CAF50';
+                    if (countdownTimer) {
+                        clearInterval(countdownTimer);
+                    }
+                    // Clear from localStorage
+                    localStorage.removeItem('ticket_' + ticketNumber + '_countdown');
+                } else {
+                    const minutes = Math.floor(waitTimeSeconds / 60);
+                    const seconds = waitTimeSeconds % 60;
+                    const paddedSeconds = seconds < 10 ? '0' + seconds : seconds;
+                    waitEl.textContent = '~' + minutes + 'm ' + paddedSeconds + 's';
+                    waitEl.style.color = '#667eea';
+                }
+            }
+        }
+        
+        // Update wait time from WebSocket
+        function updateWaitTime(minutes) {
+            startCountdown(minutes);
+        }
+        
+        // Fetch initial wait time from server
+        function fetchWaitTime() {
+            fetch('<%= request.getContextPath() %>/citizen/GetWaitTimeServlet?ticketNumber=' + ticketNumber)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    
+                    // Update position
+                    const positionEl = document.querySelector('.info-value.large');
+                    if (positionEl && data.position !== undefined) {
+                        positionEl.textContent = data.position;
+                    }
+                    
+                    // Start countdown
+                    if (data.estimatedWaitMinutes !== undefined) {
+                        startCountdown(data.estimatedWaitMinutes);
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to fetch wait time:', error);
+                });
+        }
+        
+        // Show browser notification
+        function showNotification(message) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Queue Update", { body: message });
+            }
+        }
+        
+        // Request notification permission
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+        
+        // Initialize on page load
+        window.onload = function() {
+            connectWebSocket();
+            
+            // Fetch initial wait time after WebSocket connects
+            setTimeout(function() {
+                fetchWaitTime();
+            }, 1000);
+            
+            // Auto-print option (uncomment if needed)
+            // setTimeout(function() {
+            //     if (confirm('Would you like to print your ticket?')) {
+            //         window.print();
+            //     }
+            // }, 500);
+        };
     </script>
 </body>
 </html>

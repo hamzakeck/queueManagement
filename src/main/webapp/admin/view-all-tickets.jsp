@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <%@ page import="models.Ticket" %>
 <%
     String userEmail = (String) session.getAttribute("userEmail");
@@ -20,12 +21,15 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.6; }
     .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+    .header-left h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
     .user-section { display: flex; align-items: center; gap: 1.5rem; }
     .user-info { text-align: right; }
     .user-info .email { font-size: 0.875rem; color: #6c757d; }
     .user-info .role { font-size: 0.75rem; font-weight: 500; color: #fff; background: #dc3545; padding: 0.125rem 0.5rem; border-radius: 0.25rem; display: inline-block; margin-top: 0.25rem; }
     .logout-btn { background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background 0.2s; }
+    .back-btn { background: #6c757d; color: #fff; text-decoration: none; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; display: inline-block; transition: background 0.2s; }
+    .back-btn:hover { background: #545b62; }
     .logout-btn:hover { background: #c82333; }
     .back-btn { background: transparent; border: 1px solid #dee2e6; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; color: #495057; text-decoration: none; transition: all 0.2s; display: inline-block; }
     .back-btn:hover { background: #f8f9fa; border-color: #adb5bd; }
@@ -79,24 +83,33 @@
                 <tr>
                     <th>ID</th>
                     <th>Ticket #</th>
-                    <th>Citizen ID</th>
-                    <th>Service ID</th>
-                    <th>Agency ID</th>
+                    <th>Citizen</th>
+                    <th>Service</th>
+                    <th>Agency</th>
                     <th>Status</th>
                     <th>Counter</th>
                     <th>Created</th>
                 </tr>
             </thead>
             <tbody>
-                <% List<Ticket> tickets = (List<Ticket>) request.getAttribute("tickets");
+                <% 
+                   List<Ticket> tickets = (List<Ticket>) request.getAttribute("tickets");
+                   Map<Integer, String> serviceNames = (Map<Integer, String>) request.getAttribute("serviceNames");
+                   Map<Integer, String> agencyNames = (Map<Integer, String>) request.getAttribute("agencyNames");
+                   Map<Integer, String> citizenNames = (Map<Integer, String>) request.getAttribute("citizenNames");
+                   
                    if (tickets != null && !tickets.isEmpty()) {
-                       for (Ticket ticket : tickets) { %>
+                       for (Ticket ticket : tickets) { 
+                           String serviceName = serviceNames.get(ticket.getServiceId());
+                           String agencyName = agencyNames.get(ticket.getAgencyId());
+                           String citizenName = citizenNames.get(ticket.getCitizenId());
+                %>
                 <tr>
                     <td><%=ticket.getId()%></td>
                     <td><strong><%=ticket.getTicketNumber()%></strong></td>
-                    <td><%=ticket.getCitizenId()%></td>
-                    <td><%=ticket.getServiceId()%></td>
-                    <td><%=ticket.getAgencyId()%></td>
+                    <td><%=citizenName != null ? citizenName : "ID: " + ticket.getCitizenId()%></td>
+                    <td><%=serviceName != null ? serviceName : "ID: " + ticket.getServiceId()%></td>
+                    <td><%=agencyName != null ? agencyName : "ID: " + ticket.getAgencyId()%></td>
                     <td>
                         <span class="badge badge-<%=ticket.getStatus().toLowerCase()%>">
                             <%=ticket.getStatus()%>
@@ -111,19 +124,5 @@
             </tbody>
         </table>
     </div>
-
-    <style>
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: 500;
-        }
-        .badge-waiting { background: #fff3cd; color: #856404; }
-        .badge-called { background: #d1ecf1; color: #0c5460; }
-        .badge-in_progress { background: #cce5ff; color: #004085; }
-        .badge-completed { background: #d4edda; color: #155724; }
-        .badge-cancelled { background: #f8d7da; color: #721c24; }
-    </style>
 </body>
 </html>

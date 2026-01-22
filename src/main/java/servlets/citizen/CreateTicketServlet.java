@@ -6,6 +6,7 @@ import dao.TicketDAO;
 import dao.DAOFactory;
 import dao.DAOException;
 import models.Ticket;
+import websocket.QueueWebSocket;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -40,6 +41,25 @@ public class CreateTicketServlet extends HttpServlet {
         }
 
         try {
+            // Check if user already has an active ticket (WAITING, CALLED, or IN_PROGRESS)
+            java.util.List<Ticket> allTickets = ticketDAO.findByCitizenId(citizenId);
+            boolean hasActiveTicket = false;
+            if (allTickets != null) {
+                for (Ticket t : allTickets) {
+                    String status = t.getStatus();
+                    if ("WAITING".equals(status) || "CALLED".equals(status) || "IN_PROGRESS".equals(status)) {
+                        hasActiveTicket = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasActiveTicket) {
+                session.setAttribute("errorMessage", "You already have an active ticket. Please complete or cancel your current ticket before creating a new one.");
+                response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
+                return;
+            }
+
             // Get form parameters
             String agencyIdStr = request.getParameter("agencyId");
             String serviceIdStr = request.getParameter("serviceId");
@@ -47,8 +67,8 @@ public class CreateTicketServlet extends HttpServlet {
             // Validate parameters
             if (agencyIdStr == null || agencyIdStr.trim().isEmpty() ||
                     serviceIdStr == null || serviceIdStr.trim().isEmpty()) {
-                response.sendRedirect(request.getContextPath() +
-                        "/citizen/create-ticket.jsp?error=Please select both agency and service");
+                session.setAttribute("errorMessage", "Please select both agency and service");
+                response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
                 return;
             }
 
@@ -60,17 +80,24 @@ public class CreateTicketServlet extends HttpServlet {
             ticket.setCitizenId(citizenId);
             ticket.setAgencyId(agencyId);
             ticket.setServiceId(serviceId);
+            ticket.setStatus("WAITING");
 
-            // Generate ticket number and get position
+            // Generate ticket number and get position BEFORE creating
             String ticketNumber = ticketDAO.generateTicketNumber(agencyId, serviceId);
             ticket.setTicketNumber(ticketNumber);
+
+            int position = ticketDAO.getNextPosition(agencyId, serviceId);
+            ticket.setPosition(position);
 
             // Create the ticket in database
             int ticketId = ticketDAO.create(ticket);
             ticket.setId(ticketId);
-
-            // Get the position in queue
-            int position = ticketDAO.getNextPosition(agencyId, serviceId);
+            
+            // Broadcast new ticket creation to employees
+            broadcastTicketCreated(ticketNumber, agencyId, serviceId);
+            
+            // Broadcast updated wait times for all waiting tickets in this service
+            broadcastWaitTimeUpdates(serviceId, agencyId, ticketDAO);
 
             // Store ticket info in session for confirmation page
             session.setAttribute("newTicketId", ticketId);
@@ -84,16 +111,16 @@ public class CreateTicketServlet extends HttpServlet {
 
         } catch (NumberFormatException e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() +
-                    "/citizen/create-ticket.jsp?error=Invalid agency or service selection");
+            session.setAttribute("errorMessage", "Invalid agency or service selection");
+            response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
         } catch (DAOException e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() +
-                    "/citizen/create-ticket.jsp?error=Failed to create ticket: " + e.getMessage());
+            session.setAttribute("errorMessage", "Failed to create ticket. Please try again.");
+            response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() +
-                    "/citizen/create-ticket.jsp?error=An error occurred while creating your ticket");
+            session.setAttribute("errorMessage", "An error occurred while creating your ticket");
+            response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
         }
     }
 
@@ -101,5 +128,60 @@ public class CreateTicketServlet extends HttpServlet {
             throws ServletException, IOException {
         // Redirect GET requests to the form page
         response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
+    }
+    
+    /**
+     * Broadcast new ticket creation to all connected clients (employees)
+     */
+    private void broadcastTicketCreated(String ticketNumber, int agencyId, int serviceId) {
+        try {
+            String message = "{\"action\":\"newTicket\"," +
+                    "\"ticketNumber\":\"" + ticketNumber + "\"," +
+                    "\"agencyId\":" + agencyId + "," +
+                    "\"serviceId\":" + serviceId + "," +
+                    "\"status\":\"WAITING\"}";
+            QueueWebSocket.sendUpdateToEveryone(message);
+        } catch (Exception e) {
+            System.err.println("Error broadcasting ticket creation: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Broadcast updated wait times for all waiting tickets in a service
+     */
+    private void broadcastWaitTimeUpdates(int serviceId, int agencyId, TicketDAO ticketDAO) {
+        try {
+            // Get all waiting tickets for this service and agency
+            java.util.List<Ticket> waitingTickets = ticketDAO.getWaitingQueue(agencyId, serviceId);
+            
+            if (waitingTickets == null || waitingTickets.isEmpty()) {
+                return;
+            }
+            
+            // Build JSON with updated wait time data
+            StringBuilder json = new StringBuilder("{\"action\":\"waitTimeUpdate\",\"tickets\":[");
+            
+            for (int i = 0; i < waitingTickets.size(); i++) {
+                Ticket t = waitingTickets.get(i);
+                int position = ticketDAO.getPositionInQueue(t.getId());
+                double avgTime = ticketDAO.getAverageServiceTime(t.getServiceId(), t.getAgencyId());
+                int estimatedMinutes = (int) Math.max(0, Math.ceil(position * avgTime));
+                
+                if (i > 0) json.append(",");
+                json.append("{")
+                    .append("\"ticketNumber\":\"").append(t.getTicketNumber()).append("\",")
+                    .append("\"position\":").append(position).append(",")
+                    .append("\"estimatedWaitMinutes\":").append(estimatedMinutes)
+                    .append("}");
+            }
+            json.append("]}" );
+            
+            // Broadcast to all connected WebSocket clients
+            QueueWebSocket.sendUpdateToEveryone(json.toString());
+            
+        } catch (Exception e) {
+            System.err.println("Error broadcasting wait time updates: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

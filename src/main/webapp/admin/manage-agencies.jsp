@@ -20,12 +20,15 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.6; }
     .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+    .header-left h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
     .user-section { display: flex; align-items: center; gap: 1.5rem; }
     .user-info { text-align: right; }
     .user-info .email { font-size: 0.875rem; color: #6c757d; }
     .user-info .role { font-size: 0.75rem; font-weight: 500; color: #fff; background: #dc3545; padding: 0.125rem 0.5rem; border-radius: 0.25rem; display: inline-block; margin-top: 0.25rem; }
     .logout-btn { background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background 0.2s; }
+    .back-btn { background: #6c757d; color: #fff; text-decoration: none; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; display: inline-block; transition: background 0.2s; }
+    .back-btn:hover { background: #545b62; }
     .logout-btn:hover { background: #c82333; }
     .back-btn { background: transparent; border: 1px solid #dee2e6; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; color: #495057; text-decoration: none; transition: all 0.2s; display: inline-block; }
     .back-btn:hover { background: #f8f9fa; border-color: #adb5bd; }
@@ -40,6 +43,9 @@
     .btn-secondary:hover { background: #545b62; }
     .btn-danger { background: #dc3545; color: white; }
     .btn-danger:hover { background: #c82333; }
+    .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+    .btn-info { background: #17a2b8; color: white; }
+    .btn-info:hover { background: #117a8b; }
     .alert { padding: 1rem; border-radius: 0.375rem; margin-bottom: 1rem; }
     .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
     .alert-danger { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
@@ -134,7 +140,7 @@
                     <td><%=agency.getCity()%></td>
                     <td><%=agency.isActive() ? "Yes" : "No"%></td>
                     <td>
-                        <button onclick="editAgency(<%=agency.getId()%>, '<%=agency.getName()%>', '<%=agency.getAddress()%>', '<%=agency.getCity()%>', <%=agency.isActive()%>)" class="btn btn-sm">Edit</button>
+                        <button type="button" onclick="editAgency(<%=agency.getId()%>, '<%=agency.getName()%>', '<%=agency.getAddress()%>', '<%=agency.getCity()%>', <%=agency.isActive()%>)" class="btn btn-sm btn-info">Edit</button>
                         <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure?');">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<%=agency.getId()%>">

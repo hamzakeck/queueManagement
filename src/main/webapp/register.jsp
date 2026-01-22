@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Queue Management System - Register</title>
+<title>Register - Queue Management</title>
 <style>
     * {
         margin: 0;
@@ -14,47 +14,51 @@
     }
 
     body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: #f8f9fa;
         min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
     }
 
     .register-container {
         max-width: 500px;
-        margin: 30px auto;
+        width: 100%;
         background: white;
-        padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 2.5rem;
     }
 
     .register-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 2rem;
     }
 
     .register-header h1 {
-        color: #667eea;
-        margin-bottom: 10px;
-        font-size: 28px;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
     }
 
     .register-header p {
-        color: #999;
-        font-size: 14px;
+        color: #6c757d;
+        font-size: 0.875rem;
     }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 1.25rem;
     }
 
     label {
         display: block;
-        margin-bottom: 8px;
-        color: #333;
-        font-weight: 600;
-        font-size: 14px;
+        margin-bottom: 0.5rem;
+        color: #212529;
+        font-weight: 500;
+        font-size: 0.875rem;
     }
 
     select,
@@ -63,76 +67,89 @@
     input[type="password"],
     input[type="number"] {
         width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 14px;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
         font-family: inherit;
-        transition: border-color 0.3s;
+        transition: border-color 0.2s;
     }
 
     select:focus,
     input:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #495057;
     }
 
     .hidden-field {
         display: none;
     }
 
-    .button-group {
-        display: flex;
-        gap: 10px;
-        margin-top: 30px;
-    }
-
-    .register-btn,
-    .login-link-btn {
-        flex: 1;
-        padding: 12px;
-        border: none;
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
     .register-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        width: 100%;
+        padding: 0.75rem;
+        background: #212529;
         color: white;
+        border: none;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 0.5rem;
     }
 
     .register-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .login-link-btn {
-        background: white;
-        color: #667eea;
-        border: 2px solid #667eea;
-    }
-
-    .login-link-btn:hover {
-        background: #f5f7fa;
+        background: #000;
     }
 
     .validation-error {
-        color: #e74c3c;
-        font-size: 12px;
-        margin-top: 5px;
+        color: #842029;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .error-message {
+        background: #f8d7da;
+        color: #842029;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #f5c2c7;
     }
 
     .success-message {
-        background: #d4edda;
-        color: #155724;
-        padding: 12px;
-        border-radius: 5px;
-        margin-bottom: 20px;
+        background: #d1e7dd;
+        color: #0f5132;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #badbcc;
         display: none;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .login-link p {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .login-link a {
+        color: #212529;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .login-link a:hover {
+        text-decoration: underline;
     }
 </style>
 </head>
@@ -149,23 +166,13 @@
             </div>
 
             <div class="form-group">
-                <label for="role">Role:</label>
-                <select id="role" name="role" required onchange="updateFieldVisibility()">
-                    <option value="">-- Select Role --</option>
-                    <option value="admin">Administrator</option>
-                    <option value="employee">Employee</option>
-                    <option value="citizen">Citizen</option>
-                </select>
-            </div>
-
-            <div class="form-group">
                 <label for="firstName">First Name:</label>
-                <input type="text" id="firstName" name="firstName" required placeholder="John">
+                <input type="text" id="firstName" name="firstName" required placeholder="Ahmed">
             </div>
 
             <div class="form-group">
                 <label for="lastName">Last Name:</label>
-                <input type="text" id="lastName" name="lastName" required placeholder="Doe">
+                <input type="text" id="lastName" name="lastName" required placeholder="Ahmadi">
             </div>
 
             <div class="form-group">
@@ -173,26 +180,9 @@
                 <input type="email" id="email" name="email" required placeholder="your@email.com">
             </div>
 
-            <!-- Citizen specific field -->
-            <div class="form-group hidden-field" id="cinField">
+            <div class="form-group">
                 <label for="cin">CIN (National ID):</label>
-                <input type="text" id="cin" name="cin" placeholder="AB123456">
-            </div>
-
-            <!-- Employee specific field -->
-            <div class="form-group hidden-field" id="agencyIdField">
-                <label for="agencyId">Agency ID:</label>
-                <input type="number" id="agencyId" name="agencyId" placeholder="1">
-            </div>
-            <!-- Employee service field -->
-            <div class="form-group hidden-field" id="serviceIdField">
-                <label for="serviceId">Service ID:</label>
-                <input type="number" id="serviceId" name="serviceId" placeholder="1">
-            </div>
-            <!-- Employee counter field (optional) -->
-            <div class="form-group hidden-field" id="counterIdField">
-                <label for="counterId">Counter ID (optional):</label>
-                <input type="number" id="counterId" name="counterId" placeholder="1">
+                <input type="text" id="cin" name="cin" required placeholder="AB123456">
             </div>
 
             <div class="form-group">
@@ -207,50 +197,15 @@
                 <div class="validation-error" id="confirmPasswordError"></div>
             </div>
 
-            <div class="button-group">
-                <button type="submit" class="register-btn">Register</button>
-                <a href="${pageContext.request.contextPath}/login.jsp" style="flex: 1; text-decoration: none;">
-                    <button type="button" class="login-link-btn" style="width: 100%;">Back to Login</button>
-                </a>
-            </div>
+            <button type="submit" class="register-btn">Register</button>
         </form>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="<%= request.getContextPath() %>/login.jsp">Sign in here</a></p>
+        </div>
     </div>
 
     <script>
-        function updateFieldVisibility() {
-            var role = document.getElementById('role').value;
-            var cinField = document.getElementById('cinField');
-            var agencyIdField = document.getElementById('agencyIdField');
-            var serviceIdField = document.getElementById('serviceIdField');
-            var counterIdField = document.getElementById('counterIdField');
-            var cin = document.getElementById('cin');
-            var agencyId = document.getElementById('agencyId');
-            var serviceId = document.getElementById('serviceId');
-            var counterId = document.getElementById('counterId');
-
-            // Hide all role-specific fields
-            cinField.classList.add('hidden-field');
-            agencyIdField.classList.add('hidden-field');
-            serviceIdField.classList.add('hidden-field');
-            counterIdField.classList.add('hidden-field');
-            cin.required = false;
-            agencyId.required = false;
-            serviceId.required = false;
-            counterId.required = false;
-
-            // Show relevant fields based on role
-            if (role === 'citizen') {
-                cinField.classList.remove('hidden-field');
-                cin.required = true;
-            } else if (role === 'employee') {
-                agencyIdField.classList.remove('hidden-field');
-                agencyId.required = true;
-                serviceIdField.classList.remove('hidden-field');
-                serviceId.required = true;
-                counterIdField.classList.remove('hidden-field');
-            }
-        }
-
         function validateForm() {
             var password = document.getElementById('password').value;
             var confirmPassword = document.getElementById('confirmPassword').value;
@@ -267,7 +222,7 @@
                 return false;
             }
 
-            // Check if passwords match
+            // if passwords match
             if (password !== confirmPassword) {
                 confirmPasswordError.textContent = 'Passwords do not match';
                 return false;
@@ -275,11 +230,6 @@
 
             return true;
         }
-
-        // Initialize field visibility on page load
-        window.addEventListener('load', function() {
-            updateFieldVisibility();
-        });
     </script>
 </body>
 </html>

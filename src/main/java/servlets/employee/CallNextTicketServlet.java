@@ -14,6 +14,7 @@ import models.Ticket;
 import websocket.QueueWebSocket;
 
 import java.io.IOException;
+import java.util.List;
 
 // Simple servlet to call next ticket
 @WebServlet("/employee/CallNextTicketServlet")
@@ -46,6 +47,9 @@ public class CallNextTicketServlet extends HttpServlet {
                 String message = "{\"action\":\"queueUpdate\",\"ticketNumber\":\"" + nextTicket.getTicketNumber() +
                         "\",\"status\":\"IN_PROGRESS\"}";
                 QueueWebSocket.sendUpdateToEveryone(message);
+                
+                // Broadcast updated wait times for all waiting tickets in the same service
+                broadcastWaitTimeUpdates(nextTicket.getServiceId(), nextTicket.getAgencyId(), ticketDAO);
 
                 session.setAttribute("successMessage", "Called ticket: " + nextTicket.getTicketNumber());
             } else {
@@ -58,5 +62,44 @@ public class CallNextTicketServlet extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
+    }
+    
+    /**
+     * Broadcast updated wait times for all waiting tickets in a service
+     */
+    private void broadcastWaitTimeUpdates(int serviceId, int agencyId, TicketDAO ticketDAO) {
+        try {
+            // Get all waiting tickets for this service and agency
+            List<Ticket> waitingTickets = ticketDAO.getWaitingQueue(agencyId, serviceId);
+            
+            if (waitingTickets == null || waitingTickets.isEmpty()) {
+                return;
+            }
+            
+            // Build JSON with updated wait time data
+            StringBuilder json = new StringBuilder("{\"action\":\"waitTimeUpdate\",\"tickets\":[");
+            
+            for (int i = 0; i < waitingTickets.size(); i++) {
+                Ticket t = waitingTickets.get(i);
+                int position = ticketDAO.getPositionInQueue(t.getId());
+                double avgTime = ticketDAO.getAverageServiceTime(t.getServiceId(), t.getAgencyId());
+                int estimatedMinutes = (int) Math.max(0, Math.ceil(position * avgTime));
+                
+                if (i > 0) json.append(",");
+                json.append("{")
+                    .append("\"ticketNumber\":\"").append(t.getTicketNumber()).append("\",")
+                    .append("\"position\":" ).append(position).append(",")
+                    .append("\"estimatedWaitMinutes\":" ).append(estimatedMinutes)
+                    .append("}");
+            }
+            json.append("]}" );
+            
+            // Broadcast to all connected WebSocket clients
+            QueueWebSocket.sendUpdateToEveryone(json.toString());
+            
+        } catch (Exception e) {
+            System.err.println("Error broadcasting wait time updates: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

@@ -20,12 +20,15 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.6; }
     .header { background: #fff; border-bottom: 1px solid #e9ecef; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
+    .header-left { display: flex; align-items: center; gap: 1rem; }
+    .header-left h1 { font-size: 1.25rem; font-weight: 600; color: #212529; }
     .user-section { display: flex; align-items: center; gap: 1.5rem; }
     .user-info { text-align: right; }
     .user-info .email { font-size: 0.875rem; color: #6c757d; }
     .user-info .role { font-size: 0.75rem; font-weight: 500; color: #fff; background: #dc3545; padding: 0.125rem 0.5rem; border-radius: 0.25rem; display: inline-block; margin-top: 0.25rem; }
     .logout-btn { background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: background 0.2s; }
+    .back-btn { background: #6c757d; color: #fff; text-decoration: none; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; display: inline-block; transition: background 0.2s; }
+    .back-btn:hover { background: #545b62; }
     .logout-btn:hover { background: #c82333; }
     .back-btn { background: transparent; border: 1px solid #dee2e6; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; color: #495057; text-decoration: none; transition: all 0.2s; display: inline-block; }
     .back-btn:hover { background: #f8f9fa; border-color: #adb5bd; }
@@ -76,15 +79,14 @@
     <div class="container">
         <div class="page-header">
             <h2>Manage Employees</h2>
-            <button onclick="showAddForm()" class="btn btn-primary">Add New Employee</button>
+            <p style="color: #6c757d; font-size: 0.875rem; margin-top: 0.5rem;">To add employees, go to <a href="<%=request.getContextPath()%>/admin/ManageUsersServlet" style="color: #007bff; text-decoration: none;">Manage Users</a> and promote a citizen to employee role.</p>
         </div>
 
         <% String success = request.getParameter("success");
            String error = request.getParameter("error");
            if (success != null) { %>
             <div class="alert alert-success">
-                <%= success.equals("added") ? "Employee added successfully!" : 
-                    success.equals("updated") ? "Employee updated successfully!" : 
+                <%= success.equals("updated") ? "Employee updated successfully!" : 
                     "Employee deleted successfully!" %>
             </div>
         <% } else if (error != null) { %>
@@ -93,55 +95,6 @@
 
         <% List<Agency> agencies = (List<Agency>) request.getAttribute("agencies");
            List<Service> services = (List<Service>) request.getAttribute("services"); %>
-
-        <div id="addForm" style="display:none; margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
-            <h3>Add New Employee</h3>
-            <form method="post" action="<%=request.getContextPath()%>/admin/ManageEmployeesServlet">
-                <input type="hidden" name="action" value="add">
-                <div class="form-group">
-                    <label>First Name:</label>
-                    <input type="text" name="firstName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Last Name:</label>
-                    <input type="text" name="lastName" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" name="email" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Password:</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Agency:</label>
-                    <select name="agencyId" class="form-control" required>
-                        <option value="">Select Agency</option>
-                        <% if (agencies != null) {
-                            for (Agency agency : agencies) { %>
-                        <option value="<%=agency.getId()%>"><%=agency.getName()%></option>
-                        <% } } %>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Service:</label>
-                    <select name="serviceId" class="form-control" required>
-                        <option value="">Select Service</option>
-                        <% if (services != null) {
-                            for (Service service : services) { %>
-                        <option value="<%=service.getId()%>"><%=service.getName()%></option>
-                        <% } } %>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Counter ID:</label>
-                    <input type="number" name="counterId" class="form-control" min="1" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Add Employee</button>
-                <button type="button" onclick="hideAddForm()" class="btn btn-secondary">Cancel</button>
-            </form>
-        </div>
 
         <table class="data-table">
             <thead>
@@ -232,12 +185,6 @@
     </div>
 
     <script>
-        function showAddForm() {
-            document.getElementById('addForm').style.display = 'block';
-        }
-        function hideAddForm() {
-            document.getElementById('addForm').style.display = 'none';
-        }
         function editEmployee(id, firstName, lastName, email, agencyId, serviceId, counterId) {
             document.getElementById('editId').value = id;
             document.getElementById('editFirstName').value = firstName;

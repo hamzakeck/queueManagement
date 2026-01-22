@@ -185,11 +185,6 @@
                 <h3>Track Ticket</h3>
                 <p>View your ticket status in real-time</p>
             </a>
-
-            <a href="<%= request.getContextPath() %>/citizen/history.jsp" class="action-card">
-                <h3>History</h3>
-                <p>View your past tickets</p>
-            </a>
         </div>
     </div>
 </body>
