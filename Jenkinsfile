@@ -1,19 +1,21 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven-3.9'  // Configure this in Jenkins Global Tool Configuration
-        jdk 'JDK-11'       // Configure this in Jenkins Global Tool Configuration
-    }
+    // Tools configured via system PATH - no Jenkins tool configuration needed
+    // Make sure Maven and JDK are installed on the Jenkins agent
 
     environment {
         // Application settings
         APP_NAME = 'queue-management'
         WAR_FILE = "target/${APP_NAME}.war"
         
+        // Java and Maven paths (adjust if needed)
+        JAVA_HOME = "${env.JAVA_HOME ?: 'C:\\Program Files\\Java\\jdk-11'}"
+        MAVEN_HOME = "${env.MAVEN_HOME ?: 'C:\\Program Files\\Apache\\maven'}"
+        PATH = "${MAVEN_HOME}\\bin;${JAVA_HOME}\\bin;${env.PATH}"
+        
         // Tomcat deployment settings (update these for your environment)
         TOMCAT_URL = 'http://localhost:8080'
-        TOMCAT_CREDENTIALS = credentials('tomcat-deployer')  // Configure in Jenkins credentials
         
         // Database settings for testing
         DB_HOST = 'localhost'
@@ -161,12 +163,10 @@ pipeline {
 def deployToTomcat(String environment) {
     echo "Deploying to ${environment} environment..."
     
-    // Using curl to deploy to Tomcat Manager
-    // Make sure Tomcat Manager is configured with deployment permissions
+    // Simple deployment - copy WAR to Tomcat webapps folder
+    // Adjust the path based on your Tomcat installation
     bat """
-        curl -u %TOMCAT_CREDENTIALS_USR%:%TOMCAT_CREDENTIALS_PSW% ^
-             -T target/queue-management.war ^
-             "${TOMCAT_URL}/manager/text/deploy?path=/queue-management&update=true"
+        copy /Y target\\queue-management.war "C:\\xampp\\tomcat\\webapps\\"
     """
     
     echo "Deployment to ${environment} completed!"
