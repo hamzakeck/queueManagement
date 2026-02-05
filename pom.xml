@@ -17,42 +17,48 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <servlet.api.version>4.0.1</servlet.api.version>
-        <jsp.api.version>2.3.3</jsp.api.version>
-        <jstl.version>1.2</jstl.version>
+        <servlet.api.version>5.0.0</servlet.api.version>
+        <jsp.api.version>3.0.0</jsp.api.version>
+        <jstl.version>2.0.0</jstl.version>
         <mysql.version>8.0.33</mysql.version>
-        <websocket.api.version>1.1</websocket.api.version>
+        <websocket.api.version>2.0.0</websocket.api.version>
         <junit.version>5.9.3</junit.version>
     </properties>
 
     <dependencies>
         <!-- Servlet API -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
             <version>${servlet.api.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <!-- JSP API -->
         <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>javax.servlet.jsp-api</artifactId>
+            <groupId>jakarta.servlet.jsp</groupId>
+            <artifactId>jakarta.servlet.jsp-api</artifactId>
             <version>${jsp.api.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <!-- JSTL -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>jstl</artifactId>
+            <groupId>jakarta.servlet.jsp.jstl</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+            <version>${jstl.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl</artifactId>
             <version>${jstl.version}</version>
         </dependency>
 
         <!-- WebSocket API -->
         <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-api</artifactId>
             <version>${websocket.api.version}</version>
             <scope>provided</scope>
         </dependency>
