@@ -152,7 +152,7 @@ pipeline {
         stage('Deploy to Production') {
             when {
                 allOf {
-                    branch 'main'
+                    branch 'develop'
                     expression { return !isUnix() }
                     expression { return (env.ENABLE_DEPLOY ?: 'false').toBoolean() }
                 }
