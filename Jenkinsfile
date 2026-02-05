@@ -61,7 +61,8 @@ pipeline {
             steps {
                 echo 'Running unit tests...'
                 script {
-                    runMvn('test')
+                    // Run through `verify` so JaCoCo can generate the XML report in `target/site/jacoco/jacoco.xml`.
+                    runMvn('verify')
                 }
             }
             post {
@@ -82,7 +83,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withSonarQubeEnv('SonarQube') {
-                            runMvn('sonar:sonar -Dsonar.projectKey=queue-management-system -Dsonar.projectName="Queue Management System" -Dsonar.java.binaries=target/classes')
+                            runMvn('sonar:sonar -Dsonar.projectKey=queue-management-system -Dsonar.projectName="Queue Management System" -Dsonar.java.binaries=target/classes -Dsonar.junit.reportPaths=target/surefire-reports -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml')
                         }
                     }
                 }
