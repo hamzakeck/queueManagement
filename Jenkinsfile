@@ -1,18 +1,18 @@
 pipeline {
     agent any
 
-    // Tools configured via system PATH - no Jenkins tool configuration needed
-    // Make sure Maven and JDK are installed on the Jenkins agent
+    // Prefer Jenkins-managed tools (works well on Docker/Linux controllers too)
+    tools {
+        // Configure this in: Manage Jenkins > Tools
+        maven 'Maven-3.9'
+        // Optional (only if you configured it):
+        // jdk 'JDK-11'
+    }
 
     environment {
         // Application settings
         APP_NAME = 'queue-management'
         WAR_FILE = "target/${APP_NAME}.war"
-        
-        // Java and Maven paths (adjust if needed)
-        JAVA_HOME = "${env.JAVA_HOME ?: 'C:\\Program Files\\Java\\jdk-11'}"
-        MAVEN_HOME = "${env.MAVEN_HOME ?: 'C:\\Program Files\\Apache\\maven'}"
-        PATH = "${MAVEN_HOME}\\bin;${JAVA_HOME}\\bin;${env.PATH}"
         
         // Tomcat deployment settings (update these for your environment)
         TOMCAT_URL = 'http://localhost:8080'
@@ -23,6 +23,8 @@ pipeline {
     }
 
     options {
+        // Avoid double checkout (Declarative: Checkout SCM) + our explicit checkout
+        skipDefaultCheckout(true)
         // Keep only last 10 builds
         buildDiscarder(logRotator(numToKeepStr: '10'))
         // Add timestamps to console output
@@ -44,7 +46,9 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the application...'
-                bat 'mvn clean compile -DskipTests'
+                script {
+                    runMvn('clean compile -DskipTests')
+                }
             }
             post {
                 failure {
@@ -56,7 +60,9 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 echo 'Running unit tests...'
-                bat 'mvn test'
+                script {
+                    runMvn('test')
+                }
             }
             post {
                 always {
@@ -69,21 +75,39 @@ pipeline {
             }
         }
 
-        stage('Code Quality') {
+        stage('SonarQube Analysis') {
             steps {
-                echo 'Running code quality checks...'
-                // Uncomment if you have SonarQube configured
-                // withSonarQubeEnv('SonarQube') {
-                //     bat 'mvn sonar:sonar'
-                // }
-                echo 'Code quality check placeholder - configure SonarQube for actual analysis'
+                echo 'Running SonarQube code analysis...'
+                // If SonarQube isn't configured yet, don't fail the whole build.
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    script {
+                        withSonarQubeEnv('SonarQube') {
+                            runMvn('sonar:sonar -Dsonar.projectKey=queue-management-system -Dsonar.projectName="Queue Management System" -Dsonar.java.binaries=target/classes')
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                echo 'Checking SonarQube Quality Gate...'
+                // Quality Gate requires SonarQube webhook + Jenkins SonarQube server config.
+                // Keep it non-blocking until SonarQube is fully wired.
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
+                    }
+                }
             }
         }
 
         stage('Package') {
             steps {
                 echo 'Packaging the application...'
-                bat 'mvn package -DskipTests'
+                script {
+                    runMvn('package -DskipTests')
+                }
             }
             post {
                 success {
@@ -95,7 +119,11 @@ pipeline {
 
         stage('Deploy to Dev') {
             when {
-                branch 'develop'
+                allOf {
+                    branch 'develop'
+                    expression { return !isUnix() }
+                    expression { return (env.ENABLE_DEPLOY ?: 'false').toBoolean() }
+                }
             }
             steps {
                 echo 'Deploying to Development environment...'
@@ -107,7 +135,11 @@ pipeline {
 
         stage('Deploy to Staging') {
             when {
-                branch 'staging'
+                allOf {
+                    branch 'staging'
+                    expression { return !isUnix() }
+                    expression { return (env.ENABLE_DEPLOY ?: 'false').toBoolean() }
+                }
             }
             steps {
                 echo 'Deploying to Staging environment...'
@@ -119,7 +151,11 @@ pipeline {
 
         stage('Deploy to Production') {
             when {
-                branch 'master'
+                allOf {
+                    branch 'main'
+                    expression { return !isUnix() }
+                    expression { return (env.ENABLE_DEPLOY ?: 'false').toBoolean() }
+                }
             }
             steps {
                 echo 'Deploying to Production environment...'
@@ -156,6 +192,15 @@ pipeline {
             //     to: 'team@example.com'
             // )
         }
+    }
+}
+
+// Cross-platform Maven runner (Docker/Linux uses sh; Windows uses bat)
+def runMvn(String args) {
+    if (isUnix()) {
+        sh "mvn -B ${args}"
+    } else {
+        bat "mvn -B ${args}"
     }
 }
 
