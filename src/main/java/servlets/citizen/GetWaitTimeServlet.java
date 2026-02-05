@@ -17,6 +17,7 @@ import models.Ticket;
 @WebServlet("/citizen/GetWaitTimeServlet")
 public class GetWaitTimeServlet extends HttpServlet {
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 

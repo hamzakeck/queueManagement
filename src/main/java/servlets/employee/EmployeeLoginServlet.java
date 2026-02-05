@@ -26,6 +26,7 @@ public class EmployeeLoginServlet extends HttpServlet {
         employeeDAO = DAOFactory.getInstance().getEmployeeDAO();
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
@@ -63,6 +64,7 @@ public class EmployeeLoginServlet extends HttpServlet {
         }
     }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.sendRedirect(request.getContextPath() + "/login.jsp");

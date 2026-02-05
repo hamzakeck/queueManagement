@@ -26,6 +26,7 @@ public class CitizenLoginServlet extends HttpServlet {
         citizenDAO = DAOFactory.getInstance().getCitizenDAO();
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
@@ -55,6 +56,7 @@ public class CitizenLoginServlet extends HttpServlet {
         }
     }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.sendRedirect(request.getContextPath() + "/login.jsp");

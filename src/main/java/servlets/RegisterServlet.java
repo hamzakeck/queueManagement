@@ -33,6 +33,7 @@ public class RegisterServlet extends HttpServlet {
         citizenDAO = factory.getCitizenDAO();
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String firstName = request.getParameter("firstName");
@@ -78,6 +79,7 @@ public class RegisterServlet extends HttpServlet {
         }
     }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.sendRedirect(request.getContextPath() + "/register.jsp");

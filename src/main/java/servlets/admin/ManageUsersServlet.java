@@ -4,12 +4,10 @@ import java.io.IOException;
 import java.util.List;
 
 import dao.AdministratorDAO;
-import dao.AgencyDAO;
 import dao.CitizenDAO;
 import dao.DAOException;
 import dao.DAOFactory;
 import dao.EmployeeDAO;
-import dao.ServiceDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -29,8 +27,6 @@ public class ManageUsersServlet extends HttpServlet {
     private AdministratorDAO administratorDAO;
     private EmployeeDAO employeeDAO;
     private CitizenDAO citizenDAO;
-    private AgencyDAO agencyDAO;
-    private ServiceDAO serviceDAO;
 
     @Override
     public void init() throws ServletException {
@@ -39,13 +35,12 @@ public class ManageUsersServlet extends HttpServlet {
         administratorDAO = factory.getAdministratorDAO();
         employeeDAO = factory.getEmployeeDAO();
         citizenDAO = factory.getCitizenDAO();
-        agencyDAO = factory.getAgencyDAO();
-        serviceDAO = factory.getServiceDAO();
     }
 
     /**
      * GET: Load all users and display manage-users.jsp
      */
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
@@ -73,6 +68,7 @@ public class ManageUsersServlet extends HttpServlet {
     /**
      * POST: Handle role changes
      */
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);

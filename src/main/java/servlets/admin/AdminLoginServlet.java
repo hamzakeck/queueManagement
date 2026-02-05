@@ -26,12 +26,11 @@ public class AdminLoginServlet extends HttpServlet {
         administratorDAO = DAOFactory.getInstance().getAdministratorDAO();
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
-
-        System.out.println("AdminLoginServlet - Attempting login for email: " + email);
 
         try {
             // Use DAO layer for authentication

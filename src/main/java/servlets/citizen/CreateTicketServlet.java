@@ -28,6 +28,7 @@ public class CreateTicketServlet extends HttpServlet {
         ticketDAO = DAOFactory.getInstance().getTicketDAO();
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
@@ -121,6 +122,7 @@ public class CreateTicketServlet extends HttpServlet {
         }
     }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Redirect GET requests to the form page
@@ -139,7 +141,9 @@ public class CreateTicketServlet extends HttpServlet {
                     "\"status\":\"WAITING\"}";
             QueueWebSocket.sendUpdateToEveryone(message);
         } catch (Exception e) {
-            System.err.println("Error broadcasting ticket creation: " + e.getMessage());
+            // Log error but don't fail the main operation
+            java.util.logging.Logger.getLogger(CreateTicketServlet.class.getName())
+                    .log(java.util.logging.Level.WARNING, "Error broadcasting ticket creation", e);
         }
     }
     

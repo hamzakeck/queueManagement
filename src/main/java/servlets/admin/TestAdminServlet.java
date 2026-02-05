@@ -5,12 +5,12 @@ import java.io.PrintWriter;
 
 import dao.AdministratorDAO;
 import dao.DAOFactory;
-import models.Administrator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import models.Administrator;
 
 /**
  * Test servlet to check admin authentication
@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class TestAdminServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html");
@@ -60,9 +61,7 @@ public class TestAdminServlet extends HttpServlet {
 
         } catch (Exception e) {
             out.println("<h3 style='color:red'>Error:</h3>");
-            out.println("<pre>");
-            e.printStackTrace(out);
-            out.println("</pre>");
+            out.println("<pre>" + e.getClass().getName() + ": " + e.getMessage() + "</pre>");
         }
 
         out.println("</body></html>");
