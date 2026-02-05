@@ -1,20 +1,21 @@
 package servlets.admin;
 
+import java.io.IOException;
+import java.util.List;
+
+import dao.AgencyDAO;
+import dao.DAOFactory;
+import dao.EmployeeDAO;
+import dao.ServiceDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import dao.DAOFactory;
-import dao.EmployeeDAO;
-import dao.AgencyDAO;
-import dao.ServiceDAO;
-import models.Employee;
 import models.Agency;
+import models.Employee;
 import models.Service;
-import java.io.IOException;
-import java.util.List;
 
 @WebServlet("/admin/ManageEmployeesServlet")
 public class ManageEmployeesServlet extends HttpServlet {
@@ -49,9 +50,7 @@ public class ManageEmployeesServlet extends HttpServlet {
             request.setAttribute("services", services);
             request.getRequestDispatcher("/admin/manage-employees.jsp").forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Error loading employees: " + e.getMessage());
-            request.getRequestDispatcher("/admin/manage-employees.jsp").forward(request, response);
+            throw new ServletException("Error loading employees: " + e.getMessage(), e);
         }
     }
 
@@ -102,7 +101,6 @@ public class ManageEmployeesServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/ManageEmployeesServlet?success=deleted");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/admin/ManageEmployeesServlet?error=" + e.getMessage());
         }
     }

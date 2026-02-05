@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import dao.CitizenDAO;
 import dao.DAOFactory;
-import models.Citizen;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import models.Citizen;
 
 /**
  * Citizen Login Servlet - handles authentication for citizens
@@ -51,8 +51,7 @@ public class CitizenLoginServlet extends HttpServlet {
                         request.getContextPath() + "/login.jsp?error=Invalid email or password&role=citizen");
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed&role=citizen");
+            throw new ServletException("Login failed due to an unexpected error", e);
         }
     }
 

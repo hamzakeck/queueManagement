@@ -2,15 +2,15 @@ package servlets.employee;
 
 import java.io.IOException;
 
-import dao.EmployeeDAO;
 import dao.DAOFactory;
-import models.Employee;
+import dao.EmployeeDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import models.Employee;
 
 /**
  * Employee Login Servlet - handles authentication for employees
@@ -31,20 +31,16 @@ public class EmployeeLoginServlet extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        System.out.println("EmployeeLoginServlet - Attempting login for email: " + email);
-
         try {
             // Use DAO layer for authentication
             Employee employeeRecord = employeeDAO.findByEmail(email);
             if (employeeRecord == null) {
-                System.out.println("EmployeeLoginServlet - Email not found: " + email);
                 response.sendRedirect(request.getContextPath() + "/login.jsp?error=Email not found&role=employee");
                 return;
             }
             Employee employee = employeeDAO.authenticate(email, password);
             if (employee != null) {
                 // Login successful
-                System.out.println("EmployeeLoginServlet - Login successful for: " + email);
                 HttpSession session = request.getSession();
                 session.setAttribute("userEmail", employee.getEmail());
                 session.setAttribute("userRole", "employee");
@@ -58,15 +54,12 @@ public class EmployeeLoginServlet extends HttpServlet {
 
                 response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
             } else {
-                // Password mismatch
-                System.out.println("EmployeeLoginServlet - Password mismatch for: " + email);
+                // Authentication failed
                 response.sendRedirect(
                         request.getContextPath() + "/login.jsp?error=Incorrect password&role=employee");
             }
         } catch (Exception e) {
-            System.out.println("EmployeeLoginServlet - Exception during login: " + e.getMessage());
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed&role=employee");
+            throw new ServletException("Login failed due to an unexpected error", e);
         }
     }
 

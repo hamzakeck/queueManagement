@@ -4,17 +4,15 @@ import java.io.IOException;
 
 import dao.AdministratorDAO;
 import dao.CitizenDAO;
-import dao.EmployeeDAO;
-import dao.DAOFactory;
 import dao.DAOException;
-import models.Administrator;
-import models.Citizen;
-import models.Employee;
+import dao.DAOFactory;
+import dao.EmployeeDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import models.Citizen;
 
 /**
  * Register Servlet - handles registration for all three roles
@@ -72,15 +70,11 @@ public class RegisterServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login.jsp?success=Registration successful");
 
         } catch (DAOException e) {
-            e.printStackTrace();
-            response.sendRedirect(
-                    request.getContextPath() + "/register.jsp?error=Registration failed: " + e.getMessage());
+            throw new ServletException("Registration failed: " + e.getMessage(), e);
         } catch (NumberFormatException e) {
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=Invalid agency ID format");
+            throw new ServletException("Invalid agency ID format", e);
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/register.jsp?error=Registration failed");
+            throw new ServletException("Registration failed", e);
         }
     }
 

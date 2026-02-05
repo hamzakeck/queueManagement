@@ -2,17 +2,17 @@ package servlets.citizen;
 
 import java.io.IOException;
 
-import dao.TicketDAO;
-import dao.DAOFactory;
 import dao.DAOException;
-import models.Ticket;
-import websocket.QueueWebSocket;
+import dao.DAOFactory;
+import dao.TicketDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import models.Ticket;
+import websocket.QueueWebSocket;
 
 /**
  * Servlet to handle ticket creation for citizens
@@ -110,15 +110,12 @@ public class CreateTicketServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/citizen/ticket-confirmation.jsp");
 
         } catch (NumberFormatException e) {
-            e.printStackTrace();
             session.setAttribute("errorMessage", "Invalid agency or service selection");
             response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
         } catch (DAOException e) {
-            e.printStackTrace();
             session.setAttribute("errorMessage", "Failed to create ticket. Please try again.");
             response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
         } catch (Exception e) {
-            e.printStackTrace();
             session.setAttribute("errorMessage", "An error occurred while creating your ticket");
             response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
         }
@@ -180,8 +177,7 @@ public class CreateTicketServlet extends HttpServlet {
             QueueWebSocket.sendUpdateToEveryone(json.toString());
             
         } catch (Exception e) {
-            System.err.println("Error broadcasting wait time updates: " + e.getMessage());
-            e.printStackTrace();
+            // Silently ignore broadcast errors to not disrupt the main flow
         }
     }
 }

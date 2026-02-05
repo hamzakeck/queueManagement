@@ -1,18 +1,17 @@
 package servlets.citizen;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import dao.DAOException;
+import dao.DAOFactory;
+import dao.TicketDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import dao.TicketDAO;
-import dao.DAOFactory;
-import dao.DAOException;
 import models.Ticket;
-
-import java.io.IOException;
-import java.io.PrintWriter;
 
 // Servlet to calculate and return estimated wait time
 @WebServlet("/citizen/GetWaitTimeServlet")
@@ -57,7 +56,6 @@ public class GetWaitTimeServlet extends HttpServlet {
             out.print(json);
 
         } catch (DAOException e) {
-            e.printStackTrace();
             out.print("{\"error\":\"" + e.getMessage() + "\"}");
         }
     }

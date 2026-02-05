@@ -1,20 +1,18 @@
 package servlets.employee;
 
+import java.io.IOException;
+import java.util.List;
+
+import dao.DAOFactory;
+import dao.TicketDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
-import dao.TicketDAO;
-import dao.DAOFactory;
-import dao.DAOException;
 import models.Ticket;
 import websocket.QueueWebSocket;
-
-import java.io.IOException;
-import java.util.List;
 
 // Simple servlet to complete a ticket
 @WebServlet("/employee/CompleteTicketServlet")
@@ -67,8 +65,7 @@ public class CompleteTicketServlet extends HttpServlet {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            session.setAttribute("errorMessage", "Error: " + e.getMessage());
+            throw new ServletException("Error completing ticket: " + e.getMessage(), e);
         }
 
         response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
@@ -108,8 +105,7 @@ public class CompleteTicketServlet extends HttpServlet {
             QueueWebSocket.sendUpdateToEveryone(json.toString());
             
         } catch (Exception e) {
-            System.err.println("Error broadcasting wait time updates: " + e.getMessage());
-            e.printStackTrace();
+            // Silently ignore broadcast errors to not disrupt the main flow
         }
     }
 }

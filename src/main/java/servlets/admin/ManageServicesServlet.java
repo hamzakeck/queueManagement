@@ -1,16 +1,17 @@
 package servlets.admin;
 
+import java.io.IOException;
+import java.util.List;
+
+import dao.DAOFactory;
+import dao.ServiceDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import dao.DAOFactory;
-import dao.ServiceDAO;
 import models.Service;
-import java.io.IOException;
-import java.util.List;
 
 @WebServlet("/admin/ManageServicesServlet")
 public class ManageServicesServlet extends HttpServlet {
@@ -36,9 +37,7 @@ public class ManageServicesServlet extends HttpServlet {
             request.setAttribute("services", services);
             request.getRequestDispatcher("/admin/manage-services.jsp").forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Error loading services: " + e.getMessage());
-            request.getRequestDispatcher("/admin/manage-services.jsp").forward(request, response);
+            throw new ServletException("Error loading services: " + e.getMessage(), e);
         }
     }
 
@@ -93,7 +92,6 @@ public class ManageServicesServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/ManageServicesServlet?success=deleted");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/admin/ManageServicesServlet?error=" + e.getMessage());
         }
     }

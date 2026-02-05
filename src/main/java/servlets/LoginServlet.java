@@ -4,17 +4,17 @@ import java.io.IOException;
 
 import dao.AdministratorDAO;
 import dao.CitizenDAO;
-import dao.EmployeeDAO;
 import dao.DAOFactory;
-import models.Administrator;
-import models.Citizen;
-import models.Employee;
+import dao.EmployeeDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import models.Administrator;
+import models.Citizen;
+import models.Employee;
 
 /**
  * Generic Login Servlet - automatically detects user role based on email
@@ -88,8 +88,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login.jsp?error=1");
 
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=1");
+            throw new ServletException("Login failed due to an unexpected error", e);
         }
     }
 

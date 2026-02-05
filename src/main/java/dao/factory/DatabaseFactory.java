@@ -18,10 +18,12 @@ public class DatabaseFactory {
     private String driver;
 
     private DatabaseFactory() {
-        try {
+        try (InputStream input = getClass().getClassLoader()
+                    .getResourceAsStream("dao/factory/jdbc.properties")) {
             Properties props = new Properties();
-            InputStream input = getClass().getClassLoader()
-                    .getResourceAsStream("dao/factory/jdbc.properties");
+            if (input == null) {
+                throw new IOException("Unable to find jdbc.properties");
+            }
             props.load(input);
 
             this.driver = props.getProperty("jdbc.driver");
@@ -31,7 +33,7 @@ public class DatabaseFactory {
 
             Class.forName(driver);
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new ExceptionInInitializerError("Failed to initialize DatabaseFactory: " + e.getMessage());
         }
     }
 

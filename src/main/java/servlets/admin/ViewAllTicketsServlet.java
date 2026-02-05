@@ -1,24 +1,25 @@
 package servlets.admin;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import dao.AgencyDAO;
+import dao.CitizenDAO;
+import dao.DAOFactory;
+import dao.ServiceDAO;
+import dao.TicketDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import dao.DAOFactory;
-import dao.TicketDAO;
-import dao.ServiceDAO;
-import dao.AgencyDAO;
-import dao.CitizenDAO;
-import models.Ticket;
-import models.Service;
 import models.Agency;
 import models.Citizen;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import models.Service;
+import models.Ticket;
 
 @WebServlet("/admin/ViewAllTicketsServlet")
 public class ViewAllTicketsServlet extends HttpServlet {
@@ -71,9 +72,7 @@ public class ViewAllTicketsServlet extends HttpServlet {
             request.setAttribute("citizenNames", citizenNames);
             request.getRequestDispatcher("/admin/view-all-tickets.jsp").forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Error loading tickets: " + e.getMessage());
-            request.getRequestDispatcher("/admin/view-all-tickets.jsp").forward(request, response);
+            throw new ServletException("Error loading tickets: " + e.getMessage(), e);
         }
     }
 }

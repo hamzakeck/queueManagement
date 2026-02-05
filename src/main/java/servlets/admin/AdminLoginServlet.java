@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import dao.AdministratorDAO;
 import dao.DAOFactory;
-import models.Administrator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import models.Administrator;
 
 /**
  * Admin Login Servlet - handles authentication for administrators
@@ -39,7 +39,6 @@ public class AdminLoginServlet extends HttpServlet {
 
             if (admin != null) {
                 // Login successful
-                System.out.println("AdminLoginServlet - Login successful for: " + email);
                 HttpSession session = request.getSession();
                 session.setAttribute("userEmail", admin.getEmail());
                 session.setAttribute("userRole", "admin");
@@ -53,14 +52,11 @@ public class AdminLoginServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/index.jsp");
             } else {
                 // Login failed
-                System.out.println("AdminLoginServlet - Login failed for: " + email);
                 response.sendRedirect(
                         request.getContextPath() + "/login.jsp?error=Invalid email or password&role=admin");
             }
         } catch (Exception e) {
-            System.out.println("AdminLoginServlet - Exception during login: " + e.getMessage());
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=Login failed&role=admin");
+            throw new ServletException("Login failed due to an unexpected error", e);
         }
     }
 

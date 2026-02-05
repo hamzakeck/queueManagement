@@ -4,21 +4,21 @@ import java.io.IOException;
 import java.util.List;
 
 import dao.AdministratorDAO;
-import dao.CitizenDAO;
-import dao.EmployeeDAO;
 import dao.AgencyDAO;
-import dao.ServiceDAO;
-import dao.DAOFactory;
+import dao.CitizenDAO;
 import dao.DAOException;
-import models.Administrator;
-import models.Citizen;
-import models.Employee;
+import dao.DAOFactory;
+import dao.EmployeeDAO;
+import dao.ServiceDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import models.Administrator;
+import models.Citizen;
+import models.Employee;
 
 /**
  * Servlet to manage all users (view and change roles)
@@ -66,8 +66,7 @@ public class ManageUsersServlet extends HttpServlet {
 
             request.getRequestDispatcher("/admin/manage-users.jsp").forward(request, response);
         } catch (DAOException e) {
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/admin/manage-users.jsp?error=Failed to load users");
+            throw new ServletException("Failed to load users: " + e.getMessage(), e);
         }
     }
 
@@ -217,14 +216,11 @@ public class ManageUsersServlet extends HttpServlet {
                     request.getContextPath() + "/admin/ManageUsersServlet?success=User role changed successfully");
 
         } catch (DAOException e) {
-            e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=Failed to change role: "
                     + e.getMessage());
         } catch (NumberFormatException e) {
-            e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=Invalid numeric value");
         } catch (Exception e) {
-            e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=An error occurred");
         }
     }

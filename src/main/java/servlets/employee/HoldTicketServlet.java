@@ -1,19 +1,18 @@
 package servlets.employee;
 
+import java.io.IOException;
+
+import dao.DAOException;
+import dao.DAOFactory;
+import dao.TicketDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
-import dao.DAOException;
-import dao.DAOFactory;
-import dao.TicketDAO;
 import models.Ticket;
 import websocket.QueueWebSocket;
-
-import java.io.IOException;
 
 @WebServlet("/employee/HoldTicketServlet")
 public class HoldTicketServlet extends HttpServlet {
@@ -62,8 +61,7 @@ public class HoldTicketServlet extends HttpServlet {
             }
 
         } catch (DAOException e) {
-            e.printStackTrace();
-            session.setAttribute("errorMessage", "Error: " + e.getMessage());
+            throw new ServletException("Error putting ticket on hold: " + e.getMessage(), e);
         }
 
         response.sendRedirect(request.getContextPath() + "/employee/index.jsp");

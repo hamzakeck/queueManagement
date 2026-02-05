@@ -1,16 +1,17 @@
 package servlets.admin;
 
+import java.io.IOException;
+import java.util.List;
+
+import dao.AgencyDAO;
+import dao.DAOFactory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import dao.DAOFactory;
-import dao.AgencyDAO;
 import models.Agency;
-import java.io.IOException;
-import java.util.List;
 
 @WebServlet("/admin/ManageAgenciesServlet")
 public class ManageAgenciesServlet extends HttpServlet {
@@ -36,9 +37,7 @@ public class ManageAgenciesServlet extends HttpServlet {
             request.setAttribute("agencies", agencies);
             request.getRequestDispatcher("/admin/manage-agencies.jsp").forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Error loading agencies: " + e.getMessage());
-            request.getRequestDispatcher("/admin/manage-agencies.jsp").forward(request, response);
+            throw new ServletException("Error loading agencies: " + e.getMessage(), e);
         }
     }
 
@@ -93,7 +92,6 @@ public class ManageAgenciesServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/ManageAgenciesServlet?success=deleted");
             }
         } catch (Exception e) {
-            e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/admin/ManageAgenciesServlet?error=" + e.getMessage());
         }
     }
