@@ -149,10 +149,7 @@
                 </configuration>
             </plugin>
 
-<<<<<<< HEAD
-=======
             <!-- JaCoCo Plugin for Code Coverage -->
->>>>>>> 9a6ac84a0f569f8601adbb6bf6c0575497d0814d
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
