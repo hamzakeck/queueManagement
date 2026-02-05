@@ -1,0 +1,15 @@
+# Build outputs
+/target/
+
+# VCS / IDE
+/.git/
+/.github/
+/.vscode/
+
+# OS junk
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
