@@ -19,10 +19,14 @@ import websocket.QueueWebSocket;
 @WebServlet("/employee/CallNextTicketServlet")
 public class CallNextTicketServlet extends HttpServlet {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    private transient TicketDAO ticketDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        ticketDAO = DAOFactory.getInstance().getTicketDAO();
+    }
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -39,7 +43,6 @@ public class CallNextTicketServlet extends HttpServlet {
 
         try {
             // Get the next ticket
-            TicketDAO ticketDAO = DAOFactory.getInstance().getTicketDAO();
             Ticket nextTicket = ticketDAO.callNextTicket(employeeId);
 
             if (nextTicket != null) {

@@ -1,10 +1,5 @@
 package websocket;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -14,6 +9,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -178,6 +177,7 @@ class QueueWebSocketTest {
 
         @Override
         public void setBatchingAllowed(boolean allowed) {
+            // Stub implementation for testing - method not needed for test scenarios
         }
 
         @Override

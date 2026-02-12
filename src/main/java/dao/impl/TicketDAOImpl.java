@@ -1,15 +1,23 @@
 package dao.impl;
 
-import dao.DAOException;
-import dao.TicketDAO;
-import dao.factory.DatabaseFactory;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import dao.DAOException;
+import dao.TicketDAO;
+import dao.factory.DatabaseFactory;
 import models.Ticket;
 
 /**
@@ -17,6 +25,8 @@ import models.Ticket;
  * logic)
  */
 public class TicketDAOImpl implements TicketDAO {
+
+    private static final String COL_SERVICE_ID = "service_id";
 
     @Override
     public int create(Ticket ticket) throws DAOException {
@@ -282,20 +292,40 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public Ticket getNextTicket(int agencyId, int serviceId) throws DAOException {
-        String sql;
         if (serviceId > 0) {
-            sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND service_id = ? AND status = 'WAITING' ORDER BY position, created_at LIMIT 1";
+            return getNextTicketWithService(agencyId, serviceId);
         } else {
-            sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND status = 'WAITING' ORDER BY position, created_at LIMIT 1";
+            return getNextTicketWithoutService(agencyId);
         }
+    }
+
+    private Ticket getNextTicketWithService(int agencyId, int serviceId) throws DAOException {
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND service_id = ? AND status = 'WAITING' ORDER BY position, created_at LIMIT 1";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, agencyId);
-            if (serviceId > 0) {
-                pstmt.setInt(2, serviceId);
+            pstmt.setInt(2, serviceId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return extractTicket(rs);
+                }
+                return null;
             }
+        } catch (SQLException e) {
+            throw new DAOException("Error getting next ticket: " + e.getMessage(), e);
+        }
+    }
+
+    private Ticket getNextTicketWithoutService(int agencyId) throws DAOException {
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND status = 'WAITING' ORDER BY position, created_at LIMIT 1";
+
+        try (Connection conn = DatabaseFactory.getInstance().getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, agencyId);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -647,7 +677,7 @@ public class TicketDAOImpl implements TicketDAO {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     agencyId = rs.getInt("agency_id");
-                    serviceId = rs.getInt("service_id");
+                    serviceId = rs.getInt(COL_SERVICE_ID);
                 }
             }
         } catch (SQLException e) {
@@ -694,7 +724,7 @@ public class TicketDAOImpl implements TicketDAO {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     agencyId = rs.getInt("agency_id");
-                    serviceId = rs.getInt("service_id");
+                    serviceId = rs.getInt(COL_SERVICE_ID);
                     counterId = rs.getInt("counter_id");
                 }
             }
@@ -815,7 +845,7 @@ public class TicketDAOImpl implements TicketDAO {
         ticket.setId(rs.getInt("id"));
         ticket.setTicketNumber(rs.getString("ticket_number"));
         ticket.setCitizenId(rs.getInt("citizen_id"));
-        ticket.setServiceId(rs.getInt("service_id"));
+        ticket.setServiceId(rs.getInt(COL_SERVICE_ID));
         ticket.setAgencyId(rs.getInt("agency_id"));
         ticket.setStatus(rs.getString("status"));
         ticket.setPosition(rs.getInt("position"));

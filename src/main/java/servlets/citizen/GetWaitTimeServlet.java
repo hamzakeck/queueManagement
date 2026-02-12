@@ -16,6 +16,14 @@ import models.Ticket;
 // Servlet to calculate and return estimated wait time
 @WebServlet("/citizen/GetWaitTimeServlet")
 public class GetWaitTimeServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    private transient TicketDAO ticketDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        ticketDAO = DAOFactory.getInstance().getTicketDAO();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -28,7 +36,6 @@ public class GetWaitTimeServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         try {
-            TicketDAO ticketDAO = DAOFactory.getInstance().getTicketDAO();
             Ticket ticket = ticketDAO.findByTicketNumber(ticketNumber);
 
             if (ticket == null) {

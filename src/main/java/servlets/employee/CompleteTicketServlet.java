@@ -18,10 +18,15 @@ import websocket.QueueWebSocket;
 @WebServlet("/employee/CompleteTicketServlet")
 public class CompleteTicketServlet extends HttpServlet {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    private static final String ERROR_MESSAGE_ATTR = "errorMessage";
+    private transient TicketDAO ticketDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        ticketDAO = DAOFactory.getInstance().getTicketDAO();
+    }
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -32,14 +37,13 @@ public class CompleteTicketServlet extends HttpServlet {
 
         // Check if we got a ticket ID
         if (ticketIdStr == null || ticketIdStr.trim().isEmpty()) {
-            session.setAttribute("errorMessage", "No ticket ID");
+            session.setAttribute(ERROR_MESSAGE_ATTR, "No ticket ID");
             response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
             return;
         }
 
         try {
             int ticketId = Integer.parseInt(ticketIdStr);
-            TicketDAO ticketDAO = DAOFactory.getInstance().getTicketDAO();
 
             // Get ticket info
             Ticket ticket = ticketDAO.findById(ticketId);
@@ -59,10 +63,10 @@ public class CompleteTicketServlet extends HttpServlet {
 
                     session.setAttribute("successMessage", "Ticket completed: " + ticket.getTicketNumber());
                 } else {
-                    session.setAttribute("errorMessage", "Could not complete ticket");
+                    session.setAttribute(ERROR_MESSAGE_ATTR, "Could not complete ticket");
                 }
             } else {
-                session.setAttribute("errorMessage", "Ticket not found");
+                session.setAttribute(ERROR_MESSAGE_ATTR, "Ticket not found");
             }
 
         } catch (Exception e) {

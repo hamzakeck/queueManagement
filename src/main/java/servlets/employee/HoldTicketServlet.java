@@ -17,6 +17,13 @@ import websocket.QueueWebSocket;
 @WebServlet("/employee/HoldTicketServlet")
 public class HoldTicketServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private transient TicketDAO ticketDAO;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        ticketDAO = DAOFactory.getInstance().getTicketDAO();
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -29,7 +36,6 @@ public class HoldTicketServlet extends HttpServlet {
         }
 
         try {
-            TicketDAO ticketDAO = DAOFactory.getInstance().getTicketDAO();
             // Get the ticket currently in progress for this employee
             Ticket current = ticketDAO.getCurrentTicketForEmployee(employeeId);
 
