@@ -196,6 +196,16 @@ class QueueWebSocketTest {
         @Override
         public void sendPong(java.nio.ByteBuffer applicationData) {
         }
+
+        @Override
+        public java.io.OutputStream getSendStream() {
+            return null;
+        }
+
+        @Override
+        public java.io.Writer getSendWriter() {
+            return null;
+        }
     }
 
     /**
