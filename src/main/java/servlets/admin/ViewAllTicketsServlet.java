@@ -23,10 +23,10 @@ import models.Ticket;
 
 @WebServlet("/admin/ViewAllTicketsServlet")
 public class ViewAllTicketsServlet extends HttpServlet {
-    private TicketDAO ticketDAO;
-    private ServiceDAO serviceDAO;
-    private AgencyDAO agencyDAO;
-    private CitizenDAO citizenDAO;
+    private transient TicketDAO ticketDAO;
+    private transient ServiceDAO serviceDAO;
+    private transient AgencyDAO agencyDAO;
+    private transient CitizenDAO citizenDAO;
 
     @Override
     public void init() throws ServletException {

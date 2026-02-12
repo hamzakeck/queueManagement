@@ -24,9 +24,14 @@ import models.Employee;
 @WebServlet("/admin/ManageUsersServlet")
 public class ManageUsersServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private AdministratorDAO administratorDAO;
-    private EmployeeDAO employeeDAO;
-    private CitizenDAO citizenDAO;
+    private static final String ROLE_ADMIN = "admin";
+    private static final String ROLE_CITIZEN = "citizen";
+    private static final String ROLE_EMPLOYEE = "employee";
+    private static final String REDIRECT_BASE = "/admin/ManageUsersServlet";
+    private static final String REDIRECT_USER_NOT_FOUND = "/admin/ManageUsersServlet?error=User not found";
+    private transient AdministratorDAO administratorDAO;
+    private transient EmployeeDAO employeeDAO;
+    private transient CitizenDAO citizenDAO;
 
     @Override
     public void init() throws ServletException {
@@ -44,7 +49,7 @@ public class ManageUsersServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
+        if (session == null || !ROLE_ADMIN.equals(session.getAttribute("userRole"))) {
             response.sendRedirect(request.getContextPath() + "/admin/AdminLoginServlet");
             return;
         }
@@ -72,7 +77,7 @@ public class ManageUsersServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || !"admin".equals(session.getAttribute("userRole"))) {
+        if (session == null || !ROLE_ADMIN.equals(session.getAttribute("userRole"))) {
             response.sendRedirect(request.getContextPath() + "/admin/AdminLoginServlet");
             return;
         }
@@ -82,7 +87,7 @@ public class ManageUsersServlet extends HttpServlet {
         if ("changeRole".equals(action)) {
             handleChangeRole(request, response);
         } else {
-            response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=Invalid action");
+            response.sendRedirect(request.getContextPath() + REDIRECT_BASE + "?error=Invalid action");
         }
     }
 
@@ -97,127 +102,150 @@ public class ManageUsersServlet extends HttpServlet {
             String newRole = request.getParameter("newRole");
 
             // Fetch user data from current role table
-            String firstName = null;
-            String lastName = null;
-            String email = null;
-            String password = null;
-
-            if ("citizen".equals(currentRole)) {
-                Citizen citizen = citizenDAO.findById(userId);
-                if (citizen == null) {
-                    response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=User not found");
-                    return;
-                }
-                firstName = citizen.getFirstName();
-                lastName = citizen.getLastName();
-                email = citizen.getEmail();
-                password = citizen.getPassword();
-            } else if ("employee".equals(currentRole)) {
-                Employee employee = employeeDAO.findById(userId);
-                if (employee == null) {
-                    response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=User not found");
-                    return;
-                }
-                firstName = employee.getFirstName();
-                lastName = employee.getLastName();
-                email = employee.getEmail();
-                password = employee.getPassword();
-            } else if ("admin".equals(currentRole)) {
-                Administrator admin = administratorDAO.findById(userId);
-                if (admin == null) {
-                    response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=User not found");
-                    return;
-                }
-                firstName = admin.getFirstName();
-                lastName = admin.getLastName();
-                email = admin.getEmail();
-                password = admin.getPassword();
+            String[] userData = fetchUserData(userId, currentRole);
+            if (userData == null) {
+                response.sendRedirect(request.getContextPath() + REDIRECT_USER_NOT_FOUND);
+                return;
             }
 
             // If same role, no change needed
             if (currentRole.equals(newRole)) {
-                response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?success=No changes made");
+                response.sendRedirect(request.getContextPath() + REDIRECT_BASE + "?success=No changes made");
                 return;
             }
 
             // Create new user in target role table
-            if ("citizen".equals(newRole)) {
-                String cin = request.getParameter("cin");
-                if (cin == null || cin.trim().isEmpty()) {
-                    response.sendRedirect(
-                            request.getContextPath() + "/admin/ManageUsersServlet?error=CIN is required for citizens");
-                    return;
-                }
-
-                Citizen newCitizen = new Citizen();
-                newCitizen.setFirstName(firstName);
-                newCitizen.setLastName(lastName);
-                newCitizen.setEmail(email);
-                newCitizen.setPassword(password);
-                newCitizen.setCin(cin);
-                citizenDAO.create(newCitizen);
-
-            } else if ("employee".equals(newRole)) {
-                String agencyIdStr = request.getParameter("agencyId");
-                String serviceIdStr = request.getParameter("serviceId");
-                String counterIdStr = request.getParameter("counterId");
-
-                if (agencyIdStr == null || agencyIdStr.trim().isEmpty()) {
-                    response.sendRedirect(request.getContextPath()
-                            + "/admin/ManageUsersServlet?error=Agency ID is required for employees");
-                    return;
-                }
-                if (serviceIdStr == null || serviceIdStr.trim().isEmpty()) {
-                    response.sendRedirect(request.getContextPath()
-                            + "/admin/ManageUsersServlet?error=Service ID is required for employees");
-                    return;
-                }
-
-                int agencyId = Integer.parseInt(agencyIdStr);
-                int serviceId = Integer.parseInt(serviceIdStr);
-                int counterId = 0;
-                if (counterIdStr != null && !counterIdStr.trim().isEmpty()) {
-                    counterId = Integer.parseInt(counterIdStr);
-                }
-
-                Employee newEmployee = new Employee();
-                newEmployee.setFirstName(firstName);
-                newEmployee.setLastName(lastName);
-                newEmployee.setEmail(email);
-                newEmployee.setPassword(password);
-                newEmployee.setAgencyId(agencyId);
-                newEmployee.setServiceId(serviceId);
-                newEmployee.setCounterId(counterId);
-                employeeDAO.create(newEmployee);
-
-            } else if ("admin".equals(newRole)) {
-                Administrator newAdmin = new Administrator();
-                newAdmin.setFirstName(firstName);
-                newAdmin.setLastName(lastName);
-                newAdmin.setEmail(email);
-                newAdmin.setPassword(password);
-                administratorDAO.create(newAdmin);
+            String createError = createUserInRole(request, newRole, userData);
+            if (createError != null) {
+                response.sendRedirect(request.getContextPath() + REDIRECT_BASE + "?error=" + createError);
+                return;
             }
 
             // Delete user from old role table
-            if ("citizen".equals(currentRole)) {
-                citizenDAO.delete(userId);
-            } else if ("employee".equals(currentRole)) {
-                employeeDAO.delete(userId);
-            } else if ("admin".equals(currentRole)) {
-                administratorDAO.delete(userId);
-            }
+            deleteUserFromRole(userId, currentRole);
 
             response.sendRedirect(
-                    request.getContextPath() + "/admin/ManageUsersServlet?success=User role changed successfully");
+                    request.getContextPath() + REDIRECT_BASE + "?success=User role changed successfully");
 
         } catch (DAOException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=Failed to change role: "
+            response.sendRedirect(request.getContextPath() + REDIRECT_BASE + "?error=Failed to change role: "
                     + e.getMessage());
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=Invalid numeric value");
+            response.sendRedirect(request.getContextPath() + REDIRECT_BASE + "?error=Invalid numeric value");
         } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/admin/ManageUsersServlet?error=An error occurred");
+            response.sendRedirect(request.getContextPath() + REDIRECT_BASE + "?error=An error occurred");
+        }
+    }
+
+    /**
+     * Fetch user data (firstName, lastName, email, password) from the role-specific
+     * table.
+     * Returns null if user not found.
+     */
+    private String[] fetchUserData(int userId, String role) throws DAOException {
+        if (ROLE_CITIZEN.equals(role)) {
+            Citizen citizen = citizenDAO.findById(userId);
+            return citizen == null ? null
+                    : new String[] { citizen.getFirstName(), citizen.getLastName(), citizen.getEmail(),
+                            citizen.getPassword() };
+        } else if (ROLE_EMPLOYEE.equals(role)) {
+            Employee employee = employeeDAO.findById(userId);
+            return employee == null ? null
+                    : new String[] { employee.getFirstName(), employee.getLastName(), employee.getEmail(),
+                            employee.getPassword() };
+        } else if (ROLE_ADMIN.equals(role)) {
+            Administrator admin = administratorDAO.findById(userId);
+            return admin == null ? null
+                    : new String[] { admin.getFirstName(), admin.getLastName(), admin.getEmail(),
+                            admin.getPassword() };
+        }
+        return null;
+    }
+
+    /**
+     * Create a user in the target role table. Returns an error message if
+     * validation fails, null on success.
+     */
+    private String createUserInRole(HttpServletRequest request, String newRole, String[] userData)
+            throws DAOException {
+        String firstName = userData[0];
+        String lastName = userData[1];
+        String email = userData[2];
+        String password = userData[3];
+
+        if (ROLE_CITIZEN.equals(newRole)) {
+            return createCitizen(request, firstName, lastName, email, password);
+        } else if (ROLE_EMPLOYEE.equals(newRole)) {
+            return createEmployee(request, firstName, lastName, email, password);
+        } else if (ROLE_ADMIN.equals(newRole)) {
+            Administrator newAdmin = new Administrator();
+            newAdmin.setFirstName(firstName);
+            newAdmin.setLastName(lastName);
+            newAdmin.setEmail(email);
+            newAdmin.setPassword(password);
+            administratorDAO.create(newAdmin);
+        }
+        return null;
+    }
+
+    private String createCitizen(HttpServletRequest request, String firstName, String lastName,
+            String email, String password) throws DAOException {
+        String cin = request.getParameter("cin");
+        if (cin == null || cin.trim().isEmpty()) {
+            return "CIN is required for citizens";
+        }
+        Citizen newCitizen = new Citizen();
+        newCitizen.setFirstName(firstName);
+        newCitizen.setLastName(lastName);
+        newCitizen.setEmail(email);
+        newCitizen.setPassword(password);
+        newCitizen.setCin(cin);
+        citizenDAO.create(newCitizen);
+        return null;
+    }
+
+    private String createEmployee(HttpServletRequest request, String firstName, String lastName,
+            String email, String password) throws DAOException {
+        String agencyIdStr = request.getParameter("agencyId");
+        String serviceIdStr = request.getParameter("serviceId");
+        String counterIdStr = request.getParameter("counterId");
+
+        if (agencyIdStr == null || agencyIdStr.trim().isEmpty()) {
+            return "Agency ID is required for employees";
+        }
+        if (serviceIdStr == null || serviceIdStr.trim().isEmpty()) {
+            return "Service ID is required for employees";
+        }
+
+        int agencyId = Integer.parseInt(agencyIdStr);
+        int serviceId = Integer.parseInt(serviceIdStr);
+        int counterId = 0;
+        if (counterIdStr != null && !counterIdStr.trim().isEmpty()) {
+            counterId = Integer.parseInt(counterIdStr);
+        }
+
+        Employee newEmployee = new Employee();
+        newEmployee.setFirstName(firstName);
+        newEmployee.setLastName(lastName);
+        newEmployee.setEmail(email);
+        newEmployee.setPassword(password);
+        newEmployee.setAgencyId(agencyId);
+        newEmployee.setServiceId(serviceId);
+        newEmployee.setCounterId(counterId);
+        employeeDAO.create(newEmployee);
+        return null;
+    }
+
+    /**
+     * Delete a user from their current role table.
+     */
+    private void deleteUserFromRole(int userId, String role) throws DAOException {
+        if (ROLE_CITIZEN.equals(role)) {
+            citizenDAO.delete(userId);
+        } else if (ROLE_EMPLOYEE.equals(role)) {
+            employeeDAO.delete(userId);
+        } else if (ROLE_ADMIN.equals(role)) {
+            administratorDAO.delete(userId);
         }
     }
 }

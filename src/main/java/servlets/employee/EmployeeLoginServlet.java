@@ -18,7 +18,7 @@ import models.Employee;
 @WebServlet("/employee/EmployeeLoginServlet")
 public class EmployeeLoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private EmployeeDAO employeeDAO;
+    private transient EmployeeDAO employeeDAO;
 
     @Override
     public void init() throws ServletException {
@@ -48,7 +48,8 @@ public class EmployeeLoginServlet extends HttpServlet {
                 session.setAttribute("userId", employee.getId());
                 session.setAttribute("userName", employee.getFirstName() + " " + employee.getLastName());
                 session.setAttribute("agencyId", employee.getAgencyId());
-                // Backward compatibility for any pages/logic still expecting employeeId/employeeEmail
+                // Backward compatibility for any pages/logic still expecting
+                // employeeId/employeeEmail
                 session.setAttribute("employeeId", employee.getId());
                 session.setAttribute("employeeEmail", employee.getEmail());
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes

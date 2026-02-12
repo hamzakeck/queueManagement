@@ -5,8 +5,8 @@ import dao.impl.*;
 /**
  * Factory for creating DAO instances (Singleton pattern)
  */
+@SuppressWarnings("java:S6548") // Singleton pattern is intentional
 public class DAOFactory {
-    private static DAOFactory instance;
 
     private CitizenDAO citizenDAO;
     private EmployeeDAO employeeDAO;
@@ -25,15 +25,12 @@ public class DAOFactory {
         this.agencyDAO = new AgencyDAOImpl();
     }
 
+    private static final class Holder {
+        private static final DAOFactory INSTANCE = new DAOFactory();
+    }
+
     public static DAOFactory getInstance() {
-        if (instance == null) {
-            synchronized (DAOFactory.class) {
-                if (instance == null) {
-                    instance = new DAOFactory();
-                }
-            }
-        }
-        return instance;
+        return Holder.INSTANCE;
     }
 
     public CitizenDAO getCitizenDAO() {

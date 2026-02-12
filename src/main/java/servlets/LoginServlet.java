@@ -22,9 +22,13 @@ import models.Employee;
 @WebServlet("/LoginServlet")
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private AdministratorDAO administratorDAO;
-    private EmployeeDAO employeeDAO;
-    private CitizenDAO citizenDAO;
+    private static final String ATTR_USER_EMAIL = "userEmail";
+    private static final String ATTR_USER_ROLE = "userRole";
+    private static final String ATTR_USER_ID = "userId";
+    private static final String ATTR_USER_NAME = "userName";
+    private transient AdministratorDAO administratorDAO;
+    private transient EmployeeDAO employeeDAO;
+    private transient CitizenDAO citizenDAO;
 
     @Override
     public void init() throws ServletException {
@@ -43,16 +47,14 @@ public class LoginServlet extends HttpServlet {
 
         try {
             HttpSession session = request.getSession();
-            boolean authenticated = false;
 
             // Try to authenticate as admin first
             Administrator admin = administratorDAO.authenticate(email, password);
             if (admin != null) {
-                authenticated = true;
-                session.setAttribute("userEmail", admin.getEmail());
-                session.setAttribute("userRole", "admin");
-                session.setAttribute("userId", admin.getId());
-                session.setAttribute("userName", admin.getFirstName() + " " + admin.getLastName());
+                session.setAttribute(ATTR_USER_EMAIL, admin.getEmail());
+                session.setAttribute(ATTR_USER_ROLE, "admin");
+                session.setAttribute(ATTR_USER_ID, admin.getId());
+                session.setAttribute(ATTR_USER_NAME, admin.getFirstName() + " " + admin.getLastName());
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes
                 response.sendRedirect(request.getContextPath() + "/admin/index.jsp");
                 return;
@@ -61,11 +63,10 @@ public class LoginServlet extends HttpServlet {
             // Try to authenticate as employee
             Employee employee = employeeDAO.authenticate(email, password);
             if (employee != null) {
-                authenticated = true;
-                session.setAttribute("userEmail", employee.getEmail());
-                session.setAttribute("userRole", "employee");
-                session.setAttribute("userId", employee.getId());
-                session.setAttribute("userName", employee.getFirstName() + " " + employee.getLastName());
+                session.setAttribute(ATTR_USER_EMAIL, employee.getEmail());
+                session.setAttribute(ATTR_USER_ROLE, "employee");
+                session.setAttribute(ATTR_USER_ID, employee.getId());
+                session.setAttribute(ATTR_USER_NAME, employee.getFirstName() + " " + employee.getLastName());
                 session.setAttribute("agencyId", employee.getAgencyId());
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes
                 response.sendRedirect(request.getContextPath() + "/employee/index.jsp");
@@ -75,11 +76,10 @@ public class LoginServlet extends HttpServlet {
             // Try to authenticate as citizen
             Citizen citizen = citizenDAO.authenticate(email, password);
             if (citizen != null) {
-                authenticated = true;
-                session.setAttribute("userEmail", citizen.getEmail());
-                session.setAttribute("userRole", "citizen");
-                session.setAttribute("userId", citizen.getId());
-                session.setAttribute("userName", citizen.getFirstName() + " " + citizen.getLastName());
+                session.setAttribute(ATTR_USER_EMAIL, citizen.getEmail());
+                session.setAttribute(ATTR_USER_ROLE, "citizen");
+                session.setAttribute(ATTR_USER_ID, citizen.getId());
+                session.setAttribute(ATTR_USER_NAME, citizen.getFirstName() + " " + citizen.getLastName());
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes
                 response.sendRedirect(request.getContextPath() + "/citizen/index.jsp");
                 return;

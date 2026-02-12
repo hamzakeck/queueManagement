@@ -64,7 +64,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public Employee findById(int id) throws DAOException {
-        String sql = "SELECT * FROM employees WHERE id = ?";
+        String sql = "SELECT id, first_name, last_name, email, password, agency_id, service_id, counter_id, created_at FROM employees WHERE id = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -84,7 +84,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public Employee findByEmail(String email) throws DAOException {
-        String sql = "SELECT * FROM employees WHERE email = ?";
+        String sql = "SELECT id, first_name, last_name, email, password, agency_id, service_id, counter_id, created_at FROM employees WHERE email = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -146,7 +146,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public List<Employee> findAll() throws DAOException {
-        String sql = "SELECT * FROM employees ORDER BY agency_id, counter_id";
+        String sql = "SELECT id, first_name, last_name, email, password, agency_id, service_id, counter_id, created_at FROM employees ORDER BY agency_id, counter_id";
         List<Employee> employees = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -164,7 +164,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public List<Employee> findByAgency(int agencyId) throws DAOException {
-        String sql = "SELECT * FROM employees WHERE agency_id = ? ORDER BY counter_id";
+        String sql = "SELECT id, first_name, last_name, email, password, agency_id, service_id, counter_id, created_at FROM employees WHERE agency_id = ? ORDER BY counter_id";
         List<Employee> employees = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -185,7 +185,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public Employee findByAgencyAndCounter(int agencyId, int counterId) throws DAOException {
-        String sql = "SELECT * FROM employees WHERE agency_id = ? AND counter_id = ?";
+        String sql = "SELECT id, first_name, last_name, email, password, agency_id, service_id, counter_id, created_at FROM employees WHERE agency_id = ? AND counter_id = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -206,7 +206,7 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public Employee authenticate(String email, String password) throws DAOException {
-        String sql = "SELECT * FROM employees WHERE email = ? AND password = ?";
+        String sql = "SELECT id, first_name, last_name, email, password, agency_id, service_id, counter_id, created_at FROM employees WHERE email = ? AND password = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {

@@ -56,7 +56,7 @@ public class ServiceDAOImpl implements ServiceDAO {
 
     @Override
     public Service findById(int id) throws DAOException {
-        String sql = "SELECT * FROM services WHERE id = ?";
+        String sql = "SELECT id, name, description, estimated_time, active, created_at FROM services WHERE id = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -76,7 +76,7 @@ public class ServiceDAOImpl implements ServiceDAO {
 
     @Override
     public Service findByName(String name) throws DAOException {
-        String sql = "SELECT * FROM services WHERE name = ?";
+        String sql = "SELECT id, name, description, estimated_time, active, created_at FROM services WHERE name = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -129,7 +129,7 @@ public class ServiceDAOImpl implements ServiceDAO {
 
     @Override
     public List<Service> findAll() throws DAOException {
-        String sql = "SELECT * FROM services ORDER BY name";
+        String sql = "SELECT id, name, description, estimated_time, active, created_at FROM services ORDER BY name";
         List<Service> services = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -147,7 +147,7 @@ public class ServiceDAOImpl implements ServiceDAO {
 
     @Override
     public List<Service> findAllActive() throws DAOException {
-        String sql = "SELECT * FROM services WHERE active = TRUE ORDER BY name";
+        String sql = "SELECT id, name, description, estimated_time, active, created_at FROM services WHERE active = TRUE ORDER BY name";
         List<Service> services = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();

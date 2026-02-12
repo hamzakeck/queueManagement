@@ -20,9 +20,9 @@ import models.Citizen;
 @WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private AdministratorDAO administratorDAO;
-    private EmployeeDAO employeeDAO;
-    private CitizenDAO citizenDAO;
+    private transient AdministratorDAO administratorDAO;
+    private transient EmployeeDAO employeeDAO;
+    private transient CitizenDAO citizenDAO;
 
     @Override
     public void init() throws ServletException {

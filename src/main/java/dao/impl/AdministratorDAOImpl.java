@@ -46,7 +46,7 @@ public class AdministratorDAOImpl implements AdministratorDAO {
 
     @Override
     public Administrator findById(int id) throws DAOException {
-        String sql = "SELECT * FROM administrators WHERE id = ?";
+        String sql = "SELECT id, first_name, last_name, email, password, created_at FROM administrators WHERE id = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -66,7 +66,7 @@ public class AdministratorDAOImpl implements AdministratorDAO {
 
     @Override
     public Administrator findByEmail(String email) throws DAOException {
-        String sql = "SELECT * FROM administrators WHERE email = ?";
+        String sql = "SELECT id, first_name, last_name, email, password, created_at FROM administrators WHERE email = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -119,7 +119,7 @@ public class AdministratorDAOImpl implements AdministratorDAO {
 
     @Override
     public List<Administrator> findAll() throws DAOException {
-        String sql = "SELECT * FROM administrators ORDER BY created_at DESC";
+        String sql = "SELECT id, first_name, last_name, email, password, created_at FROM administrators ORDER BY created_at DESC";
         List<Administrator> administrators = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -137,7 +137,7 @@ public class AdministratorDAOImpl implements AdministratorDAO {
 
     @Override
     public Administrator authenticate(String email, String password) throws DAOException {
-        String sql = "SELECT * FROM administrators WHERE email = ? AND password = ?";
+        String sql = "SELECT id, first_name, last_name, email, password, created_at FROM administrators WHERE email = ? AND password = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {

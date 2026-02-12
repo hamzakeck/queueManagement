@@ -18,7 +18,7 @@ import models.Citizen;
 @WebServlet("/citizen/CitizenLoginServlet")
 public class CitizenLoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private CitizenDAO citizenDAO;
+    private transient CitizenDAO citizenDAO;
 
     @Override
     public void init() throws ServletException {

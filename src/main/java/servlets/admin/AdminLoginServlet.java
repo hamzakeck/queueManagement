@@ -18,7 +18,7 @@ import models.Administrator;
 @WebServlet("/admin/AdminLoginServlet")
 public class AdminLoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private AdministratorDAO administratorDAO;
+    private transient AdministratorDAO administratorDAO;
 
     @Override
     public void init() throws ServletException {

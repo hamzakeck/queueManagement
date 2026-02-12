@@ -68,7 +68,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public Ticket findById(int id) throws DAOException {
-        String sql = "SELECT * FROM tickets WHERE id = ?";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE id = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -88,7 +88,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public Ticket findByTicketNumber(String ticketNumber) throws DAOException {
-        String sql = "SELECT * FROM tickets WHERE ticket_number = ?";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE ticket_number = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -179,7 +179,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public List<Ticket> findAll() throws DAOException {
-        String sql = "SELECT * FROM tickets ORDER BY created_at DESC";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets ORDER BY created_at DESC";
         List<Ticket> tickets = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -197,7 +197,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public List<Ticket> findByCitizen(int citizenId) throws DAOException {
-        String sql = "SELECT * FROM tickets WHERE citizen_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE citizen_id = ? ORDER BY created_at DESC";
         List<Ticket> tickets = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -218,7 +218,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public Ticket findActiveByCitizen(int citizenId) throws DAOException {
-        String sql = "SELECT * FROM tickets WHERE citizen_id = ? AND status IN ('WAITING', 'CALLED', 'IN_PROGRESS') ORDER BY created_at DESC LIMIT 1";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE citizen_id = ? AND status IN ('WAITING', 'CALLED', 'IN_PROGRESS') ORDER BY created_at DESC LIMIT 1";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -238,7 +238,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public List<Ticket> findByAgencyAndStatus(int agencyId, String status) throws DAOException {
-        String sql = "SELECT * FROM tickets WHERE agency_id = ? AND status = ? ORDER BY position, created_at";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND status = ? ORDER BY position, created_at";
         List<Ticket> tickets = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -260,7 +260,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public List<Ticket> getWaitingQueue(int agencyId, int serviceId) throws DAOException {
-        String sql = "SELECT * FROM tickets WHERE agency_id = ? AND service_id = ? AND status = 'WAITING' ORDER BY position, created_at";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND service_id = ? AND status = 'WAITING' ORDER BY position, created_at";
         List<Ticket> tickets = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -284,9 +284,9 @@ public class TicketDAOImpl implements TicketDAO {
     public Ticket getNextTicket(int agencyId, int serviceId) throws DAOException {
         String sql;
         if (serviceId > 0) {
-            sql = "SELECT * FROM tickets WHERE agency_id = ? AND service_id = ? AND status = 'WAITING' ORDER BY position, created_at LIMIT 1";
+            sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND service_id = ? AND status = 'WAITING' ORDER BY position, created_at LIMIT 1";
         } else {
-            sql = "SELECT * FROM tickets WHERE agency_id = ? AND status = 'WAITING' ORDER BY position, created_at LIMIT 1";
+            sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND status = 'WAITING' ORDER BY position, created_at LIMIT 1";
         }
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -441,7 +441,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public List<Ticket> findByDateRange(LocalDateTime startDate, LocalDateTime endDate) throws DAOException {
-        String sql = "SELECT * FROM tickets WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE created_at BETWEEN ? AND ? ORDER BY created_at DESC";
         List<Ticket> tickets = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -475,9 +475,10 @@ public class TicketDAOImpl implements TicketDAO {
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setDate(1, Date.valueOf(date));
+            int paramIndex = 1;
+            pstmt.setDate(paramIndex++, Date.valueOf(date));
             if (agencyId > 0) {
-                pstmt.setInt(2, agencyId);
+                pstmt.setInt(paramIndex, agencyId);
             }
 
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -507,10 +508,11 @@ public class TicketDAOImpl implements TicketDAO {
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, serviceId);
-            pstmt.setInt(2, agencyId);
+            int paramIndex = 1;
+            pstmt.setInt(paramIndex++, serviceId);
+            pstmt.setInt(paramIndex++, agencyId);
             if (date != null) {
-                pstmt.setDate(3, Date.valueOf(date));
+                pstmt.setDate(paramIndex, Date.valueOf(date));
             }
 
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -569,7 +571,7 @@ public class TicketDAOImpl implements TicketDAO {
 
     @Override
     public List<Ticket> findByCitizenId(int citizenId) throws DAOException {
-        String sql = "SELECT * FROM tickets WHERE citizen_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE citizen_id = ? ORDER BY created_at DESC";
         List<Ticket> tickets = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -612,7 +614,7 @@ public class TicketDAOImpl implements TicketDAO {
         }
 
         // Get current ticket being served at this counter
-        String ticketSql = "SELECT * FROM tickets WHERE counter_id = ? AND status = 'IN_PROGRESS' LIMIT 1";
+        String ticketSql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE counter_id = ? AND status = 'IN_PROGRESS' LIMIT 1";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(ticketSql)) {
@@ -657,7 +659,7 @@ public class TicketDAOImpl implements TicketDAO {
         }
 
         // Get tickets for this service at this agency with the given status
-        String ticketSql = "SELECT * FROM tickets WHERE agency_id = ? AND service_id = ? AND status = ? ORDER BY position, created_at";
+        String ticketSql = "SELECT id, ticket_number, citizen_id, service_id, agency_id, status, position, counter_id, created_at, called_at, completed_at FROM tickets WHERE agency_id = ? AND service_id = ? AND status = ? ORDER BY position, created_at";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(ticketSql)) {

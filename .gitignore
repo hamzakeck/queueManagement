@@ -60,3 +60,8 @@ nbactions.xml
 # Temp files
 **/temp/
 **/tmp/
+
+# SonarQube report files
+sonarqube-issues.md
+fetch-sonarqube-report.ps1
+mvnw.cmd

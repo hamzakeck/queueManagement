@@ -57,7 +57,7 @@ public class AgencyDAOImpl implements AgencyDAO {
 
     @Override
     public Agency findById(int id) throws DAOException {
-        String sql = "SELECT * FROM agencies WHERE id = ?";
+        String sql = "SELECT id, name, address, city, phone, total_counters, created_at FROM agencies WHERE id = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -77,7 +77,7 @@ public class AgencyDAOImpl implements AgencyDAO {
 
     @Override
     public Agency findByName(String name) throws DAOException {
-        String sql = "SELECT * FROM agencies WHERE name = ?";
+        String sql = "SELECT id, name, address, city, phone, total_counters, created_at FROM agencies WHERE name = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -131,7 +131,7 @@ public class AgencyDAOImpl implements AgencyDAO {
 
     @Override
     public List<Agency> findAll() throws DAOException {
-        String sql = "SELECT * FROM agencies ORDER BY city, name";
+        String sql = "SELECT id, name, address, city, phone, total_counters, created_at FROM agencies ORDER BY city, name";
         List<Agency> agencies = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -149,7 +149,7 @@ public class AgencyDAOImpl implements AgencyDAO {
 
     @Override
     public List<Agency> findByCity(String city) throws DAOException {
-        String sql = "SELECT * FROM agencies WHERE city = ? ORDER BY name";
+        String sql = "SELECT id, name, address, city, phone, total_counters, created_at FROM agencies WHERE city = ? ORDER BY name";
         List<Agency> agencies = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();

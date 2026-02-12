@@ -48,7 +48,7 @@ public class CitizenDAOImpl implements CitizenDAO {
 
     @Override
     public Citizen findById(int id) throws DAOException {
-        String sql = "SELECT * FROM citizens WHERE id = ?";
+        String sql = "SELECT id, first_name, last_name, email, phone, cin, password, created_at FROM citizens WHERE id = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -68,7 +68,7 @@ public class CitizenDAOImpl implements CitizenDAO {
 
     @Override
     public Citizen findByEmail(String email) throws DAOException {
-        String sql = "SELECT * FROM citizens WHERE email = ?";
+        String sql = "SELECT id, first_name, last_name, email, phone, cin, password, created_at FROM citizens WHERE email = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -88,7 +88,7 @@ public class CitizenDAOImpl implements CitizenDAO {
 
     @Override
     public Citizen findByCin(String cin) throws DAOException {
-        String sql = "SELECT * FROM citizens WHERE cin = ?";
+        String sql = "SELECT id, first_name, last_name, email, phone, cin, password, created_at FROM citizens WHERE cin = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -143,7 +143,7 @@ public class CitizenDAOImpl implements CitizenDAO {
 
     @Override
     public List<Citizen> findAll() throws DAOException {
-        String sql = "SELECT * FROM citizens ORDER BY created_at DESC";
+        String sql = "SELECT id, first_name, last_name, email, phone, cin, password, created_at FROM citizens ORDER BY created_at DESC";
         List<Citizen> citizens = new ArrayList<>();
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
@@ -161,7 +161,7 @@ public class CitizenDAOImpl implements CitizenDAO {
 
     @Override
     public Citizen authenticate(String email, String password) throws DAOException {
-        String sql = "SELECT * FROM citizens WHERE email = ? AND password = ?";
+        String sql = "SELECT id, first_name, last_name, email, phone, cin, password, created_at FROM citizens WHERE email = ? AND password = ?";
 
         try (Connection conn = DatabaseFactory.getInstance().getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {

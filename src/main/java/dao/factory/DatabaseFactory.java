@@ -10,8 +10,8 @@ import java.util.Properties;
 /**
  * Database connection factory using Singleton pattern
  */
+@SuppressWarnings("java:S6548") // Singleton pattern is intentional
 public class DatabaseFactory {
-    private static DatabaseFactory instance;
     private String url;
     private String username;
     private String password;
@@ -19,7 +19,7 @@ public class DatabaseFactory {
 
     private DatabaseFactory() {
         try (InputStream input = getClass().getClassLoader()
-                    .getResourceAsStream("dao/factory/jdbc.properties")) {
+                .getResourceAsStream("dao/factory/jdbc.properties")) {
             Properties props = new Properties();
             if (input == null) {
                 throw new IOException("Unable to find jdbc.properties");
@@ -37,15 +37,12 @@ public class DatabaseFactory {
         }
     }
 
+    private static final class Holder {
+        private static final DatabaseFactory INSTANCE = new DatabaseFactory();
+    }
+
     public static DatabaseFactory getInstance() {
-        if (instance == null) {
-            synchronized (DatabaseFactory.class) {
-                if (instance == null) {
-                    instance = new DatabaseFactory();
-                }
-            }
-        }
-        return instance;
+        return Holder.INSTANCE;
     }
 
     public Connection getConnection() throws SQLException {

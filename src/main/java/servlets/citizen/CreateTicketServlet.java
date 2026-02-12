@@ -20,7 +20,9 @@ import websocket.QueueWebSocket;
 @WebServlet("/citizen/CreateTicketServlet")
 public class CreateTicketServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private TicketDAO ticketDAO;
+    private static final String ATTR_ERROR_MESSAGE = "errorMessage";
+    private static final String CREATE_TICKET_JSP = "/citizen/create-ticket.jsp";
+    private transient TicketDAO ticketDAO;
 
     @Override
     public void init() throws ServletException {
@@ -56,8 +58,9 @@ public class CreateTicketServlet extends HttpServlet {
             }
 
             if (hasActiveTicket) {
-                session.setAttribute("errorMessage", "You already have an active ticket. Please complete or cancel your current ticket before creating a new one.");
-                response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
+                session.setAttribute(ATTR_ERROR_MESSAGE,
+                        "You already have an active ticket. Please complete or cancel your current ticket before creating a new one.");
+                response.sendRedirect(request.getContextPath() + CREATE_TICKET_JSP);
                 return;
             }
 
@@ -68,8 +71,8 @@ public class CreateTicketServlet extends HttpServlet {
             // Validate parameters
             if (agencyIdStr == null || agencyIdStr.trim().isEmpty() ||
                     serviceIdStr == null || serviceIdStr.trim().isEmpty()) {
-                session.setAttribute("errorMessage", "Please select both agency and service");
-                response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
+                session.setAttribute(ATTR_ERROR_MESSAGE, "Please select both agency and service");
+                response.sendRedirect(request.getContextPath() + CREATE_TICKET_JSP);
                 return;
             }
 
@@ -93,10 +96,10 @@ public class CreateTicketServlet extends HttpServlet {
             // Create the ticket in database
             int ticketId = ticketDAO.create(ticket);
             ticket.setId(ticketId);
-            
+
             // Broadcast new ticket creation to employees
             broadcastTicketCreated(ticketNumber, agencyId, serviceId);
-            
+
             // Broadcast updated wait times for all waiting tickets in this service
             broadcastWaitTimeUpdates(serviceId, agencyId, ticketDAO);
 
@@ -111,14 +114,14 @@ public class CreateTicketServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/citizen/ticket-confirmation.jsp");
 
         } catch (NumberFormatException e) {
-            session.setAttribute("errorMessage", "Invalid agency or service selection");
-            response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
+            session.setAttribute(ATTR_ERROR_MESSAGE, "Invalid agency or service selection");
+            response.sendRedirect(request.getContextPath() + CREATE_TICKET_JSP);
         } catch (DAOException e) {
-            session.setAttribute("errorMessage", "Failed to create ticket. Please try again.");
-            response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
+            session.setAttribute(ATTR_ERROR_MESSAGE, "Failed to create ticket. Please try again.");
+            response.sendRedirect(request.getContextPath() + CREATE_TICKET_JSP);
         } catch (Exception e) {
-            session.setAttribute("errorMessage", "An error occurred while creating your ticket");
-            response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
+            session.setAttribute(ATTR_ERROR_MESSAGE, "An error occurred while creating your ticket");
+            response.sendRedirect(request.getContextPath() + CREATE_TICKET_JSP);
         }
     }
 
@@ -126,9 +129,9 @@ public class CreateTicketServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Redirect GET requests to the form page
-        response.sendRedirect(request.getContextPath() + "/citizen/create-ticket.jsp");
+        response.sendRedirect(request.getContextPath() + CREATE_TICKET_JSP);
     }
-    
+
     /**
      * Broadcast new ticket creation to all connected clients (employees)
      */
@@ -146,7 +149,7 @@ public class CreateTicketServlet extends HttpServlet {
                     .log(java.util.logging.Level.WARNING, "Error broadcasting ticket creation", e);
         }
     }
-    
+
     /**
      * Broadcast updated wait times for all waiting tickets in a service
      */
@@ -154,32 +157,33 @@ public class CreateTicketServlet extends HttpServlet {
         try {
             // Get all waiting tickets for this service and agency
             java.util.List<Ticket> waitingTickets = ticketDAO.getWaitingQueue(agencyId, serviceId);
-            
+
             if (waitingTickets == null || waitingTickets.isEmpty()) {
                 return;
             }
-            
+
             // Build JSON with updated wait time data
             StringBuilder json = new StringBuilder("{\"action\":\"waitTimeUpdate\",\"tickets\":[");
-            
+
             for (int i = 0; i < waitingTickets.size(); i++) {
                 Ticket t = waitingTickets.get(i);
                 int position = ticketDAO.getPositionInQueue(t.getId());
                 double avgTime = ticketDAO.getAverageServiceTime(t.getServiceId(), t.getAgencyId());
                 int estimatedMinutes = (int) Math.max(0, Math.ceil(position * avgTime));
-                
-                if (i > 0) json.append(",");
+
+                if (i > 0)
+                    json.append(",");
                 json.append("{")
-                    .append("\"ticketNumber\":\"").append(t.getTicketNumber()).append("\",")
-                    .append("\"position\":").append(position).append(",")
-                    .append("\"estimatedWaitMinutes\":").append(estimatedMinutes)
-                    .append("}");
+                        .append("\"ticketNumber\":\"").append(t.getTicketNumber()).append("\",")
+                        .append("\"position\":").append(position).append(",")
+                        .append("\"estimatedWaitMinutes\":").append(estimatedMinutes)
+                        .append("}");
             }
-            json.append("]}" );
-            
+            json.append("]}");
+
             // Broadcast to all connected WebSocket clients
             QueueWebSocket.sendUpdateToEveryone(json.toString());
-            
+
         } catch (Exception e) {
             // Silently ignore broadcast errors to not disrupt the main flow
         }

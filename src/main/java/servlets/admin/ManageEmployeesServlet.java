@@ -19,9 +19,9 @@ import models.Service;
 
 @WebServlet("/admin/ManageEmployeesServlet")
 public class ManageEmployeesServlet extends HttpServlet {
-    private EmployeeDAO employeeDAO;
-    private AgencyDAO agencyDAO;
-    private ServiceDAO serviceDAO;
+    private transient EmployeeDAO employeeDAO;
+    private transient AgencyDAO agencyDAO;
+    private transient ServiceDAO serviceDAO;
 
     @Override
     public void init() throws ServletException {

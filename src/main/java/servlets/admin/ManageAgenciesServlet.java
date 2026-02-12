@@ -15,7 +15,7 @@ import models.Agency;
 
 @WebServlet("/admin/ManageAgenciesServlet")
 public class ManageAgenciesServlet extends HttpServlet {
-    private AgencyDAO agencyDAO;
+    private transient AgencyDAO agencyDAO;
 
     @Override
     public void init() throws ServletException {
