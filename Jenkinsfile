@@ -62,7 +62,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     script {
                         withSonarQubeEnv('SonarQube') {
-                            runMvn("sonar:sonar -Dsonar.projectKey=${SQ_PROJECT_KEY} -Dsonar.projectName='Queue Management System' -Dsonar.java.binaries=target/classes -Dsonar.junit.reportPaths=target/surefire-reports -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml")
+                            runMvn("sonar:sonar -Dsonar.projectKey=${SQ_PROJECT_KEY} -Dsonar.projectName=\"Queue Management System\" -Dsonar.java.binaries=target/classes -Dsonar.junit.reportPaths=target/surefire-reports -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml")
                         }
                     }
                 }
