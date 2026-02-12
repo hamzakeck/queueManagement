@@ -2,7 +2,9 @@
 .classpath
 .project
 .settings/
+.vscode/
 .metadata/
+database_migrations/
 bin/
 tmp/
 *.tmp
@@ -41,6 +43,8 @@ nbdist/
 Servers/
 
 # Database - Keep structure, ignore sensitive data
+database_setup.sql
+
 # jdbc.properties will be tracked but password should be changed per environment
 
 # OS
