@@ -65,3 +65,4 @@ nbactions.xml
 sonarqube-issues.md
 fetch-sonarqube-report.ps1
 mvnw.cmd
+get-metrics.ps1

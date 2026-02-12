@@ -7,12 +7,12 @@ import java.util.List;
 import dao.DAOException;
 import dao.DAOFactory;
 import dao.EmployeeDAO;
-import models.Employee;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import models.Employee;
 
 /**
  * Temporary diagnostic servlet to inspect employees in DB.
@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/employee/EmployeeDebugServlet")
 public class EmployeeDebugServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private static final String TD_SEPARATOR = "</td><td>";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -35,7 +36,7 @@ public class EmployeeDebugServlet extends HttpServlet {
             out.println("<table border='1' cellpadding='6' style='border-collapse:collapse;font-family:monospace'>");
             out.println("<tr><th>ID</th><th>Email</th><th>Name</th><th>Agency</th><th>Service</th><th>Counter</th></tr>");
             for (Employee e : all) {
-                out.println("<tr><td>" + e.getId() + "</td><td>" + e.getEmail() + "</td><td>" + e.getFirstName() + " " + e.getLastName() + "</td><td>" + e.getAgencyId() + "</td><td>" + e.getServiceId() + "</td><td>" + e.getCounterId() + "</td></tr>");
+                out.println("<tr><td>" + e.getId() + TD_SEPARATOR + e.getEmail() + TD_SEPARATOR + e.getFirstName() + " " + e.getLastName() + TD_SEPARATOR + e.getAgencyId() + TD_SEPARATOR + e.getServiceId() + TD_SEPARATOR + e.getCounterId() + "</td></tr>");
             }
             out.println("</table>");
 

@@ -27,6 +27,8 @@ import models.Ticket;
 public class TicketDAOImpl implements TicketDAO {
 
     private static final String COL_SERVICE_ID = "service_id";
+    private static final String COL_COUNTER_ID = "counter_id";
+    private static final String COL_AGENCY_ID = "agency_id";
 
     @Override
     public int create(Ticket ticket) throws DAOException {
@@ -632,7 +634,7 @@ public class TicketDAOImpl implements TicketDAO {
             pstmt.setInt(1, employeeId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    counterId = rs.getInt("counter_id");
+                    counterId = rs.getInt(COL_COUNTER_ID);
                 }
             }
         } catch (SQLException e) {
@@ -676,7 +678,7 @@ public class TicketDAOImpl implements TicketDAO {
             pstmt.setInt(1, employeeId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    agencyId = rs.getInt("agency_id");
+                    agencyId = rs.getInt(COL_AGENCY_ID);
                     serviceId = rs.getInt(COL_SERVICE_ID);
                 }
             }
@@ -723,9 +725,9 @@ public class TicketDAOImpl implements TicketDAO {
             pstmt.setInt(1, employeeId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    agencyId = rs.getInt("agency_id");
+                    agencyId = rs.getInt(COL_AGENCY_ID);
                     serviceId = rs.getInt(COL_SERVICE_ID);
-                    counterId = rs.getInt("counter_id");
+                    counterId = rs.getInt(COL_COUNTER_ID);
                 }
             }
         } catch (SQLException e) {
@@ -846,10 +848,10 @@ public class TicketDAOImpl implements TicketDAO {
         ticket.setTicketNumber(rs.getString("ticket_number"));
         ticket.setCitizenId(rs.getInt("citizen_id"));
         ticket.setServiceId(rs.getInt(COL_SERVICE_ID));
-        ticket.setAgencyId(rs.getInt("agency_id"));
+        ticket.setAgencyId(rs.getInt(COL_AGENCY_ID));
         ticket.setStatus(rs.getString("status"));
         ticket.setPosition(rs.getInt("position"));
-        ticket.setCounterId(rs.getInt("counter_id"));
+        ticket.setCounterId(rs.getInt(COL_COUNTER_ID));
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {

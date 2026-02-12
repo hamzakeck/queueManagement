@@ -161,18 +161,22 @@ class QueueWebSocketTest {
 
         @Override
         public void sendBinary(java.nio.ByteBuffer data) {
+            // Stub - binary sending not needed for text-based WebSocket tests
         }
 
         @Override
         public void sendObject(Object data) throws jakarta.websocket.EncodeException {
+            // Stub - object encoding not used in these tests
         }
 
         @Override
         public void sendText(String partialMessage, boolean isLast) {
+            // Stub - partial text sending not needed for test scenarios
         }
 
         @Override
         public void sendBinary(java.nio.ByteBuffer partialByte, boolean isLast) {
+            // Stub - partial binary sending not needed for test scenarios
         }
 
         @Override
@@ -187,14 +191,17 @@ class QueueWebSocketTest {
 
         @Override
         public void flushBatch() {
+            // Stub - batch flushing not needed for test scenarios
         }
 
         @Override
         public void sendPing(java.nio.ByteBuffer applicationData) {
+            // Stub - ping/pong not used in these tests
         }
 
         @Override
         public void sendPong(java.nio.ByteBuffer applicationData) {
+            // Stub - ping/pong not used in these tests
         }
 
         @Override
@@ -242,6 +249,7 @@ class QueueWebSocketTest {
 
         @Override
         public void addMessageHandler(MessageHandler handler) {
+            // Stub - message handlers not needed for send-only tests
         }
 
         @Override
@@ -251,6 +259,7 @@ class QueueWebSocketTest {
 
         @Override
         public void removeMessageHandler(MessageHandler handler) {
+            // Stub - message handlers not used in these tests
         }
 
         @Override
@@ -280,10 +289,12 @@ class QueueWebSocketTest {
 
         @Override
         public void setMaxIdleTimeout(long ms) {
+            // Stub - timeout configuration not needed for test scenarios
         }
 
         @Override
         public void setMaxBinaryMessageBufferSize(int length) {
+            // Stub - buffer size configuration not needed for tests
         }
 
         @Override
@@ -293,6 +304,7 @@ class QueueWebSocketTest {
 
         @Override
         public void setMaxTextMessageBufferSize(int length) {
+            // Stub - buffer size configuration not needed for tests
         }
 
         @Override
@@ -312,10 +324,12 @@ class QueueWebSocketTest {
 
         @Override
         public void close() {
+            // Stub - close handling not needed for these tests
         }
 
         @Override
         public void close(CloseReason closeReason) {
+            // Stub - close handling not needed for these tests
         }
 
         @Override
@@ -355,10 +369,12 @@ class QueueWebSocketTest {
 
         @Override
         public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) {
+            // Stub - typed message handlers not used in these tests
         }
 
         @Override
         public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) {
+            // Stub - typed partial handlers not used in these tests
         }
     }
 }

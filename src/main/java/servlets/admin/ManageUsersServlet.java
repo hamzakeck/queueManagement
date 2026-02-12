@@ -103,7 +103,7 @@ public class ManageUsersServlet extends HttpServlet {
 
             // Fetch user data from current role table
             String[] userData = fetchUserData(userId, currentRole);
-            if (userData == null) {
+            if (userData.length == 0) {
                 response.sendRedirect(request.getContextPath() + REDIRECT_USER_NOT_FOUND);
                 return;
             }
@@ -140,26 +140,27 @@ public class ManageUsersServlet extends HttpServlet {
     /**
      * Fetch user data (firstName, lastName, email, password) from the role-specific
      * table.
-     * Returns null if user not found.
+     * Returns empty array if user not found or role is unknown.
      */
     private String[] fetchUserData(int userId, String role) throws DAOException {
         if (ROLE_CITIZEN.equals(role)) {
             Citizen citizen = citizenDAO.findById(userId);
-            return citizen == null ? null
+            return citizen == null ? new String[0]
                     : new String[] { citizen.getFirstName(), citizen.getLastName(), citizen.getEmail(),
                             citizen.getPassword() };
         } else if (ROLE_EMPLOYEE.equals(role)) {
             Employee employee = employeeDAO.findById(userId);
-            return employee == null ? null
+            return employee == null ? new String[0]
                     : new String[] { employee.getFirstName(), employee.getLastName(), employee.getEmail(),
                             employee.getPassword() };
         } else if (ROLE_ADMIN.equals(role)) {
             Administrator admin = administratorDAO.findById(userId);
-            return admin == null ? null
+            return admin == null ? new String[0]
                     : new String[] { admin.getFirstName(), admin.getLastName(), admin.getEmail(),
                             admin.getPassword() };
         }
-        return null;
+        // Unknown role
+        return new String[0];
     }
 
     /**
